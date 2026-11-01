@@ -1,0 +1,53 @@
+# Environment variables and secrets
+
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Node.js
+
+node_modules/
+npm-debug.log*
+dist/
+
+# Python
+
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+
+# Java / Maven / Spring Boot
+
+target/
+build/
+*.class
+
+# IDE files
+
+.idea/
+*.iml
+.vscode/
+
+# Operating system files
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+
+*.log
+*.tmp
+
+# Test and coverage reports
+
+coverage/
+.pytest_cache/
+htmlcov/
+
+
+# Local backup
+README-github-original.md

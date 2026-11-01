@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tailwind Practice</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 p-8 space-y-10 font-sans">
+
+  <h1 class="text-2xl font-bold text-violet-400">Tailwind Practice Playground</h1>
+  <p class="text-slate-400">Har example ke neeche comment me bataya hai ki kaunsi class kya kar rahi hai. Inspect element se experiment karo.</p>
+
+  <!-- ============================================================
+       EXAMPLE 1: Spacing + colors + rounded corners
+       ============================================================ -->
+  <section>
+    <h2 class="text-lg font-semibold mb-2 text-slate-300">1. Spacing, color, rounded</h2>
+    <div class="bg-violet-600 text-white p-6 rounded-xl">
+      Yeh box: <code class="bg-black/30 px-1 rounded">p-6</code> (padding), <code class="bg-black/30 px-1 rounded">bg-violet-600</code> (background), <code class="bg-black/30 px-1 rounded">rounded-xl</code> (corners)
+    </div>
+  </section>
+
+  <!-- ============================================================
+       EXAMPLE 2: Flexbox layout
+       ============================================================ -->
+  <section>
+    <h2 class="text-lg font-semibold mb-2 text-slate-300">2. Flex layout with gap</h2>
+    <div class="flex gap-4">
+      <div class="bg-mint-500 bg-emerald-500 text-white p-4 rounded-lg flex-1">Box A</div>
+      <div class="bg-amber-500 text-black p-4 rounded-lg flex-1">Box B</div>
+      <div class="bg-rose-500 text-white p-4 rounded-lg flex-1">Box C</div>
+    </div>
+    <p class="text-sm text-slate-500 mt-1"><code class="bg-black/30 px-1 rounded">flex</code> + <code class="bg-black/30 px-1 rounded">gap-4</code> + <code class="bg-black/30 px-1 rounded">flex-1</code> (equal width columns)</p>
+  </section>
+
+  <!-- ============================================================
+       EXAMPLE 3: Hover + transition
+       ============================================================ -->
+  <section>
+    <h2 class="text-lg font-semibold mb-2 text-slate-300">3. Hover state</h2>
+    <button class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-3 rounded-lg transition-colors">
+      Hover over me
+    </button>
+    <p class="text-sm text-slate-500 mt-1"><code class="bg-black/30 px-1 rounded">hover:bg-emerald-400</code> only applies on hover; <code class="bg-black/30 px-1 rounded">transition-colors</code> makes it smooth.</p>
+  </section>
+
+  <!-- ============================================================
+       EXAMPLE 4: Responsive (resize your browser to see it change)
+       ============================================================ -->
+  <section>
+    <h2 class="text-lg font-semibold mb-2 text-slate-300">4. Responsive: stacks on mobile, row on desktop</h2>
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="bg-slate-800 p-4 rounded-lg flex-1 border border-slate-700">Panel 1</div>
+      <div class="bg-slate-800 p-4 rounded-lg flex-1 border border-slate-700">Panel 2</div>
+    </div>
+    <p class="text-sm text-slate-500 mt-1"><code class="bg-black/30 px-1 rounded">flex-col</code> (default: stacked) <code class="bg-black/30 px-1 rounded">md:flex-row</code> (row from medium screens up)</p>
+  </section>
+
+  <!-- ============================================================
+       YOUR TURN — solve this without looking at the answer below
+       ============================================================
+
+    CHALLENGE: Build a "streak card" using ONLY Tailwind utility classes
+    (no custom CSS). It should have:
+      1. A dark card with rounded corners and some padding
+      2. A bold heading "7 Day Streak" in an accent color
+      3. A row (flex) with 2 small pill-shaped badges inside it
+      4. On hover, the whole card should get a subtle border glow color change
+
+    Try it in the empty div below. Hints: rounded-full is for pills,
+    border + hover:border-<color> for the glow-on-hover effect.
+  -->
+  <section>
+    <h2 class="text-lg font-semibold mb-2 text-slate-300">Your challenge — build it here 👇</h2>
+    <div class="border border-slate-700 rounded-xl p-4 min-h-[120px] text-slate-600 text-sm">
+      <!-- delete this placeholder text and build your card here -->
+      Empty canvas — build your streak card with Tailwind classes only.
+    </div>
+  </section>
+
+</body>
+</html>

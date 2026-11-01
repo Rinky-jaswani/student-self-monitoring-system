@@ -1,0 +1,119 @@
+{
+  "info": {
+    "name": "StudySpark - Learning Collection",
+    "description": "Practice requests against a free public API, plus stubbed requests matching StudySpark's own API contract (see docs/system_architecture_and_db_design.md) for once the Java backend is running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Practice: JSONPlaceholder (works right now)",
+      "item": [
+        {
+          "name": "Get all posts",
+          "request": {
+            "method": "GET",
+            "url": "https://jsonplaceholder.typicode.com/posts"
+          }
+        },
+        {
+          "name": "Get one post",
+          "request": {
+            "method": "GET",
+            "url": "https://jsonplaceholder.typicode.com/posts/1"
+          }
+        },
+        {
+          "name": "Create a post",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"my first post\",\n  \"body\": \"testing postman\",\n  \"userId\": 1\n}"
+            },
+            "url": "https://jsonplaceholder.typicode.com/posts"
+          }
+        },
+        {
+          "name": "Update a post (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"title\": \"updated title\",\n  \"body\": \"updated body\",\n  \"userId\": 1\n}"
+            },
+            "url": "https://jsonplaceholder.typicode.com/posts/1"
+          }
+        },
+        {
+          "name": "Delete a post",
+          "request": {
+            "method": "DELETE",
+            "url": "https://jsonplaceholder.typicode.com/posts/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "StudySpark API (once Java backend is live)",
+      "item": [
+        {
+          "name": "Register student",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ananya Rao\",\n  \"age\": 20,\n  \"phone\": \"9876543210\",\n  \"email\": \"ananya@example.com\",\n  \"course\": \"B.Tech CSE\",\n  \"learner_type\": \"university\",\n  \"username\": \"ananya_r\",\n  \"password\": \"demo1234\",\n  \"avatar_id\": \"atom\"\n}"
+            },
+            "url": "http://localhost:8080/api/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"ananya_r\",\n  \"password\": \"demo1234\"\n}"
+            },
+            "url": "http://localhost:8080/api/auth/login"
+          }
+        },
+        {
+          "name": "Log a study session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1,\n  \"subjectId\": 1,\n  \"logDate\": \"2026-08-17\",\n  \"hoursSpent\": 2.5,\n  \"topic\": \"Data Structures\"\n}"
+            },
+            "url": "http://localhost:8080/api/logs"
+          }
+        },
+        {
+          "name": "Daily check-in",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1,\n  \"studentMessage\": \"I finally understood recursion today!\",\n  \"recentLogs\": [\n    { \"date\": \"2026-08-15\", \"subject\": \"Operating Systems\", \"topic\": \"Scheduling\", \"hours\": 1.0 },\n    { \"date\": \"2026-08-16\", \"subject\": \"Mathematics\", \"topic\": \"Calculus\", \"hours\": 2.0 }\n  ]\n}"
+            },
+            "url": "http://localhost:8080/api/checkin"
+          }
+        },
+        {
+          "name": "Get dashboard summary",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/dashboard/summary?studentId=1"
+          }
+        }
+      ]
+    }
+  ]
+}
