@@ -51,3 +51,5 @@ htmlcov/
 
 # Local backup
 README-github-original.md
+# Local debugging logs
+backend-java/startup-log.txt
