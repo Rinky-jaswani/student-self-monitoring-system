@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — StudySpark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles/styles.css">
+<script src="../scripts/auth.js"></script>
+<script>requireAuth();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  body { padding-bottom: 60px; }
+
+  /* ---------- Navbar ---------- */
+  .navbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .navbar .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; }
+  .navbar .right { display: flex; align-items: center; gap: 16px; }
+  .streak-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--accent-soft);
+    padding: 6px 14px; border-radius: 999px;
+    font-family: var(--font-data); font-weight: 700; color: var(--accent-dark);
+    font-size: 13.5px;
+  }
+  .nav-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--bg-alt); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+  }
+  .nav-avatar svg { width: 17px; height: 17px; }
+
+  /* ---------- Layout ---------- */
+  .dash-main { padding: 30px 24px; }
+  .page-head { margin-bottom: 20px; }
+  .page-head h1 { font-size: 24px; margin-bottom: 4px; }
+  .page-head p { color: var(--text-muted); font-size: 14px; margin: 0; }
+
+  /* ---------- Stat cards ---------- */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 700px) { .stats-row { grid-template-columns: 1fr; } }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 16px 18px;
+  }
+  .stat-card .value { font-family: var(--font-data); font-size: 24px; font-weight: 700; color: var(--accent-dark); }
+  .stat-card .label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ---------- Section card headers ---------- */
+  .section-card { margin-bottom: 20px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .section-head h2 { font-size: 16px; }
+
+  /* ---------- Sidebar mascot card ---------- */
+  .sidebar-card { text-align: center; padding: 26px 20px; }
+  .sidebar-card .mascot { width: 100px; height: 100px; margin-bottom: 4px; }
+  .streak-numbers { display: flex; justify-content: center; gap: 24px; margin: 16px 0 6px; }
+  .streak-numbers .num { font-family: var(--font-data); font-size: 20px; font-weight: 700; color: var(--text); }
+  .streak-numbers .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ---------- Chart cards ---------- */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-card canvas { max-height: 200px; }
+
+  /* ---------- Add entry modal ---------- */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; background: rgba(55, 53, 47, 0.35);
+    align-items: center; justify-content: center; z-index: 50;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box { width: 100%; max-width: 400px; margin: 16px; }
+  .modal-box h2 { font-size: 18px; margin-bottom: 16px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 26 26"><circle cx="13" cy="13" r="12" fill="#6C5CE7"/></svg>
+    StudySpark
+  </div>
+  <div class="right">
+    <div class="streak-pill" id="navStreakPill">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2c1 4-3 5-3 9a3 3 0 006 0c0-1-0.5-2-1-2.5 1.5 0.5 3 2 3 4.5a5 5 0 01-10 0c0-5 5-6 5-11z" fill="#584AC7"/></svg>
+      <span id="navStreakVal">5</span> day streak
+    </div>
+    <button type="button" class="btn btn-ghost" id="logoutBtn" onclick="logout()" style="padding:6px 12px; font-size:13px;">Log out</button>
+    <div class="nav-avatar" title="Atom avatar">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.8" fill="currentColor"/><ellipse cx="12" cy="12" rx="9.5" ry="4" stroke="currentColor" stroke-width="1.3" fill="none"/><ellipse cx="12" cy="12" rx="9.5" ry="4" stroke="currentColor" stroke-width="1.3" fill="none" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9.5" ry="4" stroke="currentColor" stroke-width="1.3" fill="none" transform="rotate(120 12 12)"/></svg>
+    </div>
+  </div>
+</nav>
+
+<main class="dash-main container">
+
+  <div class="page-head">
+    <h1 id="welcomeHeading">Welcome back, Ananya</h1>
+    <p>Here's how the last week has gone.</p>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="value" id="statHours">—</div>
+      <div class="label">Hours studied this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="statAvgScore">—</div>
+      <div class="label">Average score</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="statStreak">—</div>
+      <div class="label">Current streak</div>
+    </div>
+  </div>
+
+  <div class="grid-dashboard">
+
+    <!-- Main column -->
+    <div>
+      <!-- Activity table -->
+      <div class="card section-card">
+        <div class="section-head">
+          <h2>Daily activity</h2>
+          <button class="btn btn-primary" onclick="openModal()">+ Add entry</button>
+        </div>
+        <table class="activity" id="activityTable">
+          <thead>
+            <tr><th>Date</th><th>Subject</th><th>Topic</th><th>Hours</th><th>Score</th></tr>
+          </thead>
+          <tbody id="activityBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="card chart-card">
+          <div class="section-head"><h2 style="font-size:14px;">Score trend</h2></div>
+          <canvas id="scoreChart"></canvas>
+        </div>
+        <div class="card chart-card">
+          <div class="section-head"><h2 style="font-size:14px;">Hours by subject</h2></div>
+          <canvas id="hoursChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside>
+      <div class="card sidebar-card">
+        <svg class="mascot" data-mascot-group="dash" data-mood="idle" viewBox="0 0 170 170" role="img" aria-label="Spark Core">
+          <defs>
+            <radialGradient id="coreGradDash" cx="35%" cy="35%" r="70%">
+              <stop offset="0%" stop-color="#A79BF0"/>
+              <stop offset="55%" stop-color="#6C5CE7"/>
+              <stop offset="100%" stop-color="#4B3EC0"/>
+            </radialGradient>
+          </defs>
+          <ellipse class="orbit-ring" cx="85" cy="85" rx="72" ry="30" stroke="#6C5CE7" stroke-width="1.6" fill="none" opacity="0.55" transform="rotate(-18 85 85)"/>
+          <ellipse class="orbit-ring-2" cx="85" cy="85" rx="72" ry="30" stroke="#B9AEF2" stroke-width="1.6" fill="none" opacity="0.6" transform="rotate(35 85 85)"/>
+          <circle r="3.4" fill="#4B3EC0">
+            <animateMotion dur="6s" repeatCount="indefinite" path="M13,85 A72,30 -18 1,1 157,85 A72,30 -18 1,1 13,85" />
+          </circle>
+          <circle class="core" cx="85" cy="85" r="30" fill="url(#coreGradDash)"/>
+          <path class="spark-particle" d="M85 18l3 9 9 3-9 3-3 9-3-9-9-3 9-3z" fill="#6C5CE7"/>
+          <path class="spark-particle" d="M150 60l2.5 6.5 6.5 2.5-6.5 2.5-2.5 6.5-2.5-6.5-6.5-2.5 6.5-2.5z" fill="#A79BF0"/>
+          <path class="spark-particle" d="M20 60l2.5 6.5 6.5 2.5-6.5 2.5-2.5 6.5-2.5-6.5-6.5-2.5 6.5-2.5z" fill="#A79BF0"/>
+        </svg>
+        <div class="speech-bubble" data-speech-for="dash" id="dashSpeech">Ready when you are.</div>
+        <div class="streak-numbers">
+          <div><div class="num" id="sideCurrentStreak">5</div><div class="lbl">Current</div></div>
+          <div><div class="num" id="sideLongestStreak">7</div><div class="lbl">Longest</div></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Log something today to keep the streak alive.</p>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<!-- Add entry modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="card modal-box">
+    <h2>Log today's session</h2>
+    <form id="entryForm" onsubmit="return handleAddEntry(event)">
+      <div class="row-2">
+        <div class="field">
+          <label for="entry-date">Date</label>
+          <input id="entry-date" type="date" required />
+        </div>
+        <div class="field">
+          <label for="entry-hours">Hours spent</label>
+          <input id="entry-hours" type="number" step="0.5" min="0.5" max="16" required />
+        </div>
+      </div>
+      <div class="field">
+        <label for="entry-subject">Subject</label>
+        <select id="entry-subject" required>
+          <option value="Data Structures">Data Structures</option>
+          <option value="Operating Systems">Operating Systems</option>
+          <option value="Mathematics">Mathematics</option>
+          <option value="DBMS">DBMS</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="entry-topic">Topic</label>
+        <input id="entry-topic" type="text" placeholder="e.g. Binary Search Trees" required />
+      </div>
+      <div class="field">
+        <label for="entry-score">Score (optional — only if this was a test)</label>
+        <input id="entry-score" type="number" min="0" max="100" placeholder="e.g. 85" />
+      </div>
+      <div style="display:flex; gap:10px; margin-top:6px;">
+        <button type="button" class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="flex:1">Save entry</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../scripts/mascot.js"></script>
+<script>
+  /* Auth: show the logged-in student's name; /api/students/me also verifies the token. */
+  function setWelcome(name) {
+    if (name) document.getElementById('welcomeHeading').textContent = 'Welcome back, ' + name.split(' ')[0];
+  }
+  (async function loadCurrentStudent() {
+    const cached = getStudent();
+    if (cached && cached.name) setWelcome(cached.name);
+    try {
+      const me = await apiFetch('/api/students/me');
+      localStorage.setItem(STUDENT_KEY, JSON.stringify(me));
+      setWelcome(me.name);
+    } catch (err) {
+      /* 401 is handled by apiFetch (clears token, back to login). Network errors keep the cached view. */
+      console.warn('Could not load profile:', err.message);
+    }
+  })();
+</script>
+<script>
+  /* ============================================================
+     DEMO DATA — in-memory only, no backend wired up yet.
+     Once Java is live: GET /api/logs, GET /api/scores,
+     GET /api/dashboard/summary, GET /api/streaks (see API contract
+     in docs/system_architecture_and_db_design.md) replace all of this.
+     ============================================================ */
+
+  // One accent color family, varying shade per subject for distinction
+  // without introducing new hues.
+  const SUBJECT_COLORS = {
+    'Data Structures': '#6C5CE7',
+    'Operating Systems': '#4B3EC0',
+    'Mathematics': '#8477EA',
+    'DBMS': '#A79BF0',
+  };
+
+  let logs = [
+    { date: '2026-08-10', subject: 'Data Structures', topic: 'Trees', hours: 2, score: null },
+    { date: '2026-08-11', subject: 'Operating Systems', topic: 'Deadlocks', hours: 1.5, score: null },
+    { date: '2026-08-12', subject: 'Mathematics', topic: 'Probability', hours: 2, score: 78 },
+    { date: '2026-08-13', subject: 'DBMS', topic: 'Normalization', hours: 1, score: null },
+    { date: '2026-08-14', subject: 'Data Structures', topic: 'Graphs', hours: 2.5, score: 82 },
+    { date: '2026-08-15', subject: 'Operating Systems', topic: 'Scheduling', hours: 1, score: null },
+    { date: '2026-08-16', subject: 'Mathematics', topic: 'Calculus', hours: 2, score: 88 },
+  ];
+
+  let currentStreak = 5;
+  let longestStreak = 7;
+  const TODAY = '2026-08-17';
+  let loggedToday = false;
+
+  let scoreChart, hoursChart;
+
+  function fmtDate(d) {
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  }
+
+  function renderTable() {
+    const body = document.getElementById('activityBody');
+    body.innerHTML = '';
+    [...logs].sort((a, b) => b.date.localeCompare(a.date)).forEach((log) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${fmtDate(log.date)}</td>
+        <td><span class="subject-tag" style="background:${SUBJECT_COLORS[log.subject]}1A; color:${SUBJECT_COLORS[log.subject]};">${log.subject}</span></td>
+        <td>${log.topic}</td>
+        <td class="num">${log.hours}h</td>
+        <td class="num">${log.score !== null ? log.score + '%' : '—'}</td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+
+  function renderStats() {
+    const weekHours = logs.reduce((sum, l) => sum + l.hours, 0);
+    const scores = logs.filter(l => l.score !== null).map(l => l.score);
+    const avgScore = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+
+    document.getElementById('statHours').textContent = weekHours.toFixed(1) + 'h';
+    document.getElementById('statAvgScore').textContent = avgScore + '%';
+    document.getElementById('statStreak').textContent = currentStreak + ' days';
+    document.getElementById('navStreakVal').textContent = currentStreak;
+    document.getElementById('sideCurrentStreak').textContent = currentStreak;
+    document.getElementById('sideLongestStreak').textContent = longestStreak;
+  }
+
+  function renderCharts() {
+    const scored = [...logs].filter(l => l.score !== null).sort((a, b) => a.date.localeCompare(b.date));
+    const scoreLabels = scored.map(l => fmtDate(l.date));
+    const scoreData = scored.map(l => l.score);
+
+    const hoursBySubject = {};
+    logs.forEach(l => { hoursBySubject[l.subject] = (hoursBySubject[l.subject] || 0) + l.hours; });
+    const subjectLabels = Object.keys(hoursBySubject);
+    const subjectData = Object.values(hoursBySubject);
+    const subjectColors = subjectLabels.map(s => SUBJECT_COLORS[s]);
+
+    const gridColor = '#EFEFED';
+    const textColor = '#8A8781';
+
+    if (scoreChart) scoreChart.destroy();
+    scoreChart = new Chart(document.getElementById('scoreChart'), {
+      type: 'line',
+      data: {
+        labels: scoreLabels,
+        datasets: [{
+          data: scoreData,
+          borderColor: '#6C5CE7',
+          backgroundColor: 'rgba(108,92,231,0.10)',
+          tension: 0.35,
+          fill: true,
+          pointBackgroundColor: '#6C5CE7',
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: textColor }, grid: { color: gridColor } },
+          y: { ticks: { color: textColor }, grid: { color: gridColor }, min: 0, max: 100 }
+        }
+      }
+    });
+
+    if (hoursChart) hoursChart.destroy();
+    hoursChart = new Chart(document.getElementById('hoursChart'), {
+      type: 'bar',
+      data: {
+        labels: subjectLabels,
+        datasets: [{ data: subjectData, backgroundColor: subjectColors, borderRadius: 6 }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: textColor }, grid: { display: false } },
+          y: { ticks: { color: textColor }, grid: { color: gridColor } }
+        }
+      }
+    });
+  }
+
+  function renderAll() {
+    renderTable();
+    renderStats();
+    renderCharts();
+  }
+
+  function openModal() {
+    document.getElementById('entry-date').value = TODAY;
+    document.getElementById('modalOverlay').classList.add('active');
+  }
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('active');
+    document.getElementById('entryForm').reset();
+  }
+
+  function handleAddEntry(evt) {
+    evt.preventDefault();
+    const date = document.getElementById('entry-date').value;
+    const subject = document.getElementById('entry-subject').value;
+    const topic = document.getElementById('entry-topic').value.trim();
+    const hours = parseFloat(document.getElementById('entry-hours').value);
+    const scoreRaw = document.getElementById('entry-score').value;
+    const score = scoreRaw === '' ? null : parseInt(scoreRaw, 10);
+
+    // In production: POST to /api/logs (and /api/scores if a score was entered)
+    logs.push({ date, subject, topic, hours, score });
+
+    if (date === TODAY && !loggedToday) {
+      loggedToday = true;
+      currentStreak += 1;
+      if (currentStreak > longestStreak) longestStreak = currentStreak;
+      celebrateNewEntry('dash');
+    }
+
+    renderAll();
+    closeModal();
+  }
+
+  renderAll();
+</script>
+
+</body>
+</html>

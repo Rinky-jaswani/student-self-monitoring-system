@@ -37,6 +37,11 @@ public class StudentCreateRequest {
     @Pattern(regexp = "^(school|university|coaching|online_self_learner)$")
     private String learnerType;
 
+         @NotBlank
+     @Size(min = 2, max = 100)
+    @Pattern
+(regexp = "^[A-Za-z ] + $", message = "Name must contain letters and spaces only")
+    
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -49,11 +54,30 @@ public class StudentCreateRequest {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public Integer getAge() { return age; }
-    public void setAge(Integer age) { this.age = age; }
+        @Max(100)
+    
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    @Pattern(
+        regexp = "^[0-9]{7,15}$",
+        message = "Phone must be 7-15 digits, numbers only"
+    )
+   
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
     public String getCourse() { return course; }
     public void setCourse(String course) { this.course = course; }
