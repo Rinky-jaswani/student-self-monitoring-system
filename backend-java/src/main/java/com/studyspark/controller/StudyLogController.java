@@ -1,4 +1,4 @@
-package com.studyspark.controller;
+﻿package com.studyspark.controller;
 
 import com.studyspark.dto.StudyLogCreateRequest;
 import com.studyspark.dto.StudyLogResponse;
@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/study-logs")
@@ -48,4 +49,14 @@ public class StudyLogController {
 
         return studyLogService.getStudyLogsByStudent(studentId);
     }
+
+    @DeleteMapping("/{logId}")
+public ResponseEntity<Void> deleteStudyLog(
+        @PathVariable Long logId,
+        Principal principal) {
+
+    studyLogService.deleteStudyLog(logId, principal.getName());
+
+    return ResponseEntity.noContent().build();
+}
 }

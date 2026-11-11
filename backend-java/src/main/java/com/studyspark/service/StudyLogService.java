@@ -78,4 +78,18 @@ public class StudyLogService {
                 .map(StudyLogResponse::new)
                 .toList();
     }
+    @Transactional
+public void deleteStudyLog(Long logId, String userEmail) {
+
+    StudyLog studyLog = studyLogRepository.findById(logId)
+            .orElseThrow(() ->
+                    new IllegalArgumentException("Study log not found"));
+
+    if (!studyLog.getStudent().getEmail().equals(userEmail)) {
+        throw new IllegalArgumentException(
+                "You are not allowed to delete this study log");
+    }
+
+    studyLogRepository.delete(studyLog);
+}
 }
