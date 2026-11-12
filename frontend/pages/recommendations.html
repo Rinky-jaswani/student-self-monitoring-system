@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudySpark | Recommendations</title>
+    <link rel="stylesheet" href="../styles/styles.css">
+
+    <style>
+        .recommendations-container {
+            max-width: 1100px;
+            margin: 35px auto;
+            padding: 20px;
+        }
+
+        .recommendation-card {
+            background: white;
+            padding: 22px;
+            margin: 18px 0;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .priority {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .HIGH { background: #ffe0e0; color: #b42318; }
+        .MEDIUM { background: #fff0cc; color: #946200; }
+        .LOW { background: #d9f7e5; color: #187443; }
+
+        .reason {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f4f6fa;
+            border-radius: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .feedback-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .feedback-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+
+        .feedback-btn {
+            padding: 9px 16px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .feedback-btn:hover {
+            background: #f0edff;
+            border-color: #6c5ce7;
+        }
+
+        .feedback-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .rating-select {
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            margin: 8px 0;
+        }
+
+        .save-feedback {
+            display: block;
+            margin-top: 10px;
+            padding: 10px 18px;
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .save-feedback:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .feedback-message {
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .success { color: #187443; }
+        .error { color: #b42318; }
+
+        .progress-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #eee;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #6c5ce7;
+            transition: width 0.3s ease;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .summary-stats p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="recommendations-container">
+
+    <h1>Personalised Recommendations</h1>
+    <p>Study suggestions based on your learning activity.</p>
+
+    <!-- Adherence Summary -->
+    <div class="progress-card">
+        <h2>Your Recommendation Progress</h2>
+
+        <h3 id="adherence-value">0% Adherence</h3>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="adherence-bar"></div>
+        </div>
+
+        <div class="summary-stats">
+            <p>Completed: <strong id="completed-count">0</strong></p>
+            <p>Partly Done: <strong id="partly-count">0</strong></p>
+            <p>Skipped: <strong id="skipped-count">0</strong></p>
+            <p>Total: <strong id="total-count">0</strong></p>
+        </div>
+    </div>
+
+    <div id="recommendations-list" class="loading">
+        Loading recommendations...
+    </div>
+
+</div>
+
+<script src="../scripts/auth.js"></script>
+
+<script>
+    requireAuth();
+
+    const container = document.getElementById('recommendations-list');
+
+    let recommendations = [];
+
+    function escapeHTML(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        })[char]);
+    }
+
+    async function loadSummary() {
+        try {
+            const summary = await apiFetch(
+                '/api/recommendation-feedback/summary'
+            );
+
+            document.getElementById('adherence-value').textContent =
+                summary.adherenceRate + '% Adherence';
+
+            document.getElementById('adherence-bar').style.width =
+                Math.min(100, summary.adherenceRate) + '%';
+
+            document.getElementById('completed-count').textContent =
+                summary.completed;
+
+            document.getElementById('partly-count').textContent =
+                summary.partlyCompleted;
+
+            document.getElementById('skipped-count').textContent =
+                summary.skipped;
+
+            document.getElementById('total-count').textContent =
+                summary.total;
+
+        } catch (error) {
+            console.error('Summary loading error:', error);
+        }
+    }
+
+    async function loadRecommendations() {
+
+        try {
+            recommendations = await apiFetch('/api/recommendations/me');
+
+            if (!recommendations || recommendations.length === 0) {
+                container.innerHTML =
+                    '<p>No recommendations available.</p>';
+                return;
+            }
+
+            container.innerHTML = recommendations.map((item, index) => `
+                <div class="recommendation-card" data-index="${index}">
+
+                    <span class="priority ${escapeHTML(item.priority)}">
+                        ${escapeHTML(item.priority)} PRIORITY
+                    </span>
+
+                    <h2>${escapeHTML(item.title)}</h2>
+
+                    <h3>${escapeHTML(item.subjectName)}</h3>
+
+                    <p>${escapeHTML(item.description)}</p>
+
+                    <div class="reason">
+                        <strong>Why this?</strong>
+                        <p>${escapeHTML(item.reason)}</p>
+                    </div>
+
+                    <p>
+                        <strong>Suggested study time:</strong>
+                        ${escapeHTML(item.suggestedHours)} hours
+                    </p>
+
+                    <div class="feedback-section">
+
+                        <h3>How did this recommendation go?</h3>
+
+                        <div class="feedback-buttons">
+                            <button class="feedback-btn"
+                                data-status="DONE">
+                                Done
+                            </button>
+
+                            <button class="feedback-btn"
+                                data-status="PARTLY">
+                                Partly Done
+                            </button>
+
+                            <button class="feedback-btn"
+                                data-status="SKIPPED">
+                                Skip
+                            </button>
+                        </div>
+
+                        <label>
+                            How useful was this recommendation?
+                        </label>
+
+                        <br>
+
+                        <select class="rating-select">
+                            <option value="">Select rating</option>
+                            <option value="1">1 - Not useful</option>
+                            <option value="2">2 - Slightly useful</option>
+                            <option value="3">3 - Moderately useful</option>
+                            <option value="4">4 - Very useful</option>
+                            <option value="5">5 - Extremely useful</option>
+                        </select>
+
+                        <button class="save-feedback">
+                            Submit Feedback
+                        </button>
+
+                        <p class="feedback-message"></p>
+
+                    </div>
+
+                </div>
+            `).join('');
+
+            attachFeedbackEvents();
+
+        } catch (error) {
+            container.innerHTML =
+                '<p>Unable to load recommendations. Please login again.</p>';
+
+            console.error(error);
+        }
+    }
+
+    function attachFeedbackEvents() {
+
+        document.querySelectorAll('.recommendation-card').forEach(card => {
+
+            let selectedStatus = '';
+
+            const buttons = card.querySelectorAll('.feedback-btn');
+            const ratingSelect = card.querySelector('.rating-select');
+            const saveButton = card.querySelector('.save-feedback');
+            const message = card.querySelector('.feedback-message');
+
+            buttons.forEach(button => {
+
+                button.addEventListener('click', () => {
+
+                    selectedStatus = button.dataset.status;
+
+                    buttons.forEach(btn => {
+                        btn.style.background =
+                            btn === button ? '#e8e3ff' : 'white';
+
+                        btn.style.borderColor =
+                            btn === button ? '#6c5ce7' : '#ccc';
+                    });
+                });
+            });
+
+            saveButton.addEventListener('click', async () => {
+
+                if (!selectedStatus) {
+                    message.textContent =
+                        'Please select Done, Partly Done or Skip.';
+
+                    message.className = 'feedback-message error';
+                    return;
+                }
+
+                const rating = ratingSelect.value;
+
+                if (!rating) {
+                    message.textContent =
+                        'Please select a usefulness rating.';
+
+                    message.className = 'feedback-message error';
+                    return;
+                }
+
+                const index = Number(card.dataset.index);
+                const item = recommendations[index];
+
+                saveButton.disabled = true;
+                message.textContent = 'Saving feedback...';
+                message.className = 'feedback-message';
+
+                try {
+
+                    await apiFetch('/api/recommendation-feedback', {
+                        method: 'POST',
+
+                        body: JSON.stringify({
+                            subjectId: item.subjectId,
+                            recommendationTitle: item.title,
+                            status: selectedStatus,
+                            usefulnessRating: Number(rating)
+                        })
+                    });
+
+                    message.textContent =
+                        'Feedback saved successfully!';
+
+                    message.className =
+                        'feedback-message success';
+
+                    buttons.forEach(btn => btn.disabled = true);
+                    ratingSelect.disabled = true;
+
+                    saveButton.textContent = 'Feedback Submitted';
+
+                    await loadSummary();
+
+                } catch (error) {
+
+                    console.error('Feedback error:', error);
+
+                    message.textContent =
+                        'Unable to save feedback. Please try again.';
+
+                    message.className =
+                        'feedback-message error';
+
+                    saveButton.disabled = false;
+                }
+            });
+        });
+    }
+
+    async function initializePage() {
+        await loadRecommendations();
+        await loadSummary();
+    }
+
+    initializePage();
+
+</script>
+
+</body>
+</html>
