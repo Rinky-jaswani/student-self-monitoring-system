@@ -143,6 +143,43 @@
         .summary-stats p {
             margin: 5px 0;
         }
+        .history-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-DONE {
+    background: #d9f7e5;
+    color: #187443;
+}
+
+.status-PARTLY {
+    background: #fff0cc;
+    color: #946200;
+}
+
+.status-SKIPPED {
+    background: #ffe0e0;
+    color: #b42318;
+}
+
+.history-date {
+    color: #777;
+    font-size: 13px;
+}
     </style>
 </head>
 
@@ -171,10 +208,21 @@
         </div>
     </div>
 
+        
+
+    <!-- Recommendation History -->
+    <div class="progress-card">
+        <h2>Recommendation History</h2>
+        <p>Your previously submitted feedback.</p>
+
+        <div id="feedback-history">
+            Loading history...
+        </div>
+    </div>
+
     <div id="recommendations-list" class="loading">
         Loading recommendations...
     </div>
-
 </div>
 
 <script src="../scripts/auth.js"></script>
@@ -411,10 +459,65 @@
             });
         });
     }
+    async function loadFeedbackHistory() {
+
+    const historyContainer =
+        document.getElementById('feedback-history');
+
+    try {
+
+        const history = await apiFetch(
+            '/api/recommendation-feedback/me'
+        );
+
+        if (!history || history.length === 0) {
+            historyContainer.innerHTML =
+                '<p>No feedback history available yet.</p>';
+            return;
+        }
+
+        historyContainer.innerHTML = history.map(item => {
+
+            const date = item.createdAt
+                ? new Date(item.createdAt).toLocaleString()
+                : 'Date unavailable';
+
+            return `
+                <div class="history-item">
+
+                    <h3>${escapeHTML(item.recommendationTitle)}</h3>
+
+                    <span class="history-status status-${escapeHTML(item.status)}">
+                        ${escapeHTML(item.status)}
+                    </span>
+
+                    <p>
+                        Usefulness Rating:
+                        <strong>${item.usefulnessRating ?? 'Not rated'}/5</strong>
+                    </p>
+
+                    <p class="history-date">
+                        ${escapeHTML(date)}
+                    </p>
+
+                </div>
+            `;
+
+        }).join('');
+
+    } catch (error) {
+
+        console.error('History error:', error);
+
+        historyContainer.innerHTML =
+            '<p>Unable to load feedback history.</p>';
+    }
+}
 
     async function initializePage() {
         await loadRecommendations();
         await loadSummary();
+        await loadFeedbackHistory();
     }
 
     initializePage();
