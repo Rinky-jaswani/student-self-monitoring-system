@@ -1,4 +1,4 @@
-﻿package com.studyspark.controller;
+package com.studyspark.controller;
 
 import com.studyspark.dto.StudyLogCreateRequest;
 import com.studyspark.dto.StudyLogResponse;
