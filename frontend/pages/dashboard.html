@@ -77,6 +77,110 @@
   #activityTable {min-width:600px}
   .section-card {overflow-x:auto}
 
+  /* AI Study Companion */
+.ai-companion {
+  margin: 25px 0;
+  padding: 25px;
+  background: linear-gradient(145deg, #192440, #11192d);
+  border: 1px solid rgba(139,112,255,.28);
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.ai-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.ai-header h2 {
+  font-size: 19px;
+  margin: 0;
+}
+
+.ai-badge {
+  font-size: 11px;
+  color: #a99aff;
+  background: rgba(139,112,255,.14);
+  border: 1px solid rgba(139,112,255,.3);
+  padding: 7px 12px;
+  border-radius: 20px;
+}
+
+.ai-description {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.ai-chat-box {
+  min-height: 110px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.ai-message {
+  padding: 13px 16px;
+  border-radius: 13px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  max-width: 85%;
+  white-space: pre-wrap;
+}
+
+.ai-message.user {
+  margin-left: auto;
+  background: rgba(139,112,255,.2);
+  color: #e2dcff;
+}
+
+.ai-message.bot {
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.ai-input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.ai-input-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 15px;
+  border-radius: 11px;
+  background: #10182b;
+  border: 1px solid var(--border);
+  color: white;
+  outline: none;
+}
+
+.ai-input-row input:focus {
+  border-color: #9278FF;
+}
+
+.ai-status {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-top: 12px;
+}
+
+@media(max-width:600px) {
+  .ai-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ai-input-row {
+    flex-direction: column;
+  }
+}
+
   @media(max-width:900px) {
     .grid-dashboard {grid-template-columns:1fr}
     .sidebar-card {max-width:none}
@@ -172,6 +276,53 @@
       <div class="label">Current streak</div>
     </div>
   </div>
+
+  <!-- AI Study Companion -->
+<section class="card ai-companion">
+
+  <div class="ai-header">
+    <h2>✨ AI Study Companion</h2>
+
+    <span class="ai-badge">
+      Llama 3.2 · RAG Enabled
+    </span>
+  </div>
+
+  <p class="ai-description">
+    Ask Spark about your subjects, study topics or learning progress.
+    Get AI-powered guidance based on relevant study knowledge.
+  </p>
+
+  <div class="ai-chat-box" id="aiChatBox">
+
+    <div class="ai-message bot">
+      Hi! I'm Spark. What are you studying today?
+      Ask me anything about your subjects!
+    </div>
+
+  </div>
+
+  <form class="ai-input-row" onsubmit="return handleSparkChat(event)">
+
+    <input
+      type="text"
+      id="sparkMessage"
+      placeholder="Ask Spark about CPU scheduling, Java, DBMS..."
+      autocomplete="off"
+      required
+    >
+
+    <button type="submit" class="btn btn-primary" id="sparkSendBtn">
+      Ask Spark
+    </button>
+
+  </form>
+
+  <div class="ai-status" id="aiStatus">
+    ● AI Study Companion ready
+  </div>
+
+</section>
 
   <div class="grid-dashboard">
 
@@ -631,6 +782,85 @@ function renderAll() {
   renderTable();
   renderStats();
   renderCharts();
+}
+
+async function handleSparkChat(event) {
+  event.preventDefault();
+
+  const input = document.getElementById('sparkMessage');
+  const chatBox = document.getElementById('aiChatBox');
+  const status = document.getElementById('aiStatus');
+  const sendButton = document.getElementById('sparkSendBtn');
+
+  const message = input.value.trim();
+
+  if (!message) return false;
+
+  function addMessage(text, type) {
+    const bubble = document.createElement('div');
+    bubble.className = 'ai-message ' + type;
+    bubble.textContent = text;
+    chatBox.appendChild(bubble);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return bubble;
+  }
+
+  addMessage(message, 'user');
+
+  input.value = '';
+  input.disabled = true;
+  sendButton.disabled = true;
+  sendButton.textContent = 'Thinking...';
+
+  status.textContent = '● Spark is generating your response...';
+
+  const loadingBubble = addMessage('Thinking...', 'bot');
+
+  try {
+    const recentLogs = [...logs]
+      .sort((a, b) => b.logDate.localeCompare(a.logDate))
+      .slice(0, 5)
+      .map(log => ({
+        date: log.logDate,
+        subject: log.subjectName || getSubjectName(log.subjectId),
+        topic: log.topic || '',
+        hours: log.hoursSpent
+      }));
+
+    const response = await apiFetch('/api/checkin', {
+      method: 'POST',
+      body: JSON.stringify({
+        studentId: student.id,
+        studentMessage: message,
+        recentLogs: recentLogs
+      })
+    });
+
+    loadingBubble.textContent =
+      response.reply || 'I could not generate a response. Please try again.';
+
+    status.textContent =
+      '● Response generated · Llama 3.2 · RAG-powered AI';
+
+  } catch (error) {
+
+    loadingBubble.textContent =
+      'Sorry! I could not connect to Spark. Please try again.';
+
+    status.textContent = '● AI connection failed';
+
+    console.error('Spark AI error:', error);
+
+  } finally {
+
+    input.disabled = false;
+    sendButton.disabled = false;
+    sendButton.textContent = 'Ask Spark';
+    input.focus();
+
+  }
+
+  return false;
 }
 
 async function loadDashboard() {
