@@ -1,434 +1,402 @@
-# AI-Powered Student Self-Monitoring and Performance Analysis System
+# StudySpark
+## AI-Powered Student Self-Monitoring and Performance Analysis System
 
-> **Project status: work in progress (academic research project).**
-> The core backend foundation exists. The closed-loop adaptive mechanism that forms the research contribution is **not yet implemented**. See [Development Status](#development-status) for an exact breakdown that is updated as work is completed.
+**StudySpark** is a web-based academic self-monitoring platform designed to help students record study activities, monitor academic performance, review progress, and receive AI-assisted academic guidance.
 
-Working name used in the code: **StudySpark**.
+The system combines a student-facing web interface, a Java Spring Boot backend, a PostgreSQL database, and a Python Flask AI service integrated with the locally running Llama 3.2 model through Ollama.
 
-## Contents
+---
 
-- [Introduction](#introduction)
-- [Problem Statement](#problem-statement)
-- [Research Motivation](#research-motivation)
-- [Objectives and Research Questions](#objectives-and-research-questions)
-- [Proposed Solution](#proposed-solution)
-- [Core Features](#core-features)
-- [Closed-Loop Workflow](#closed-loop-workflow)
-- [Static vs Adaptive Approach](#static-vs-adaptive-approach)
-- [Technology Stack](#technology-stack)
-- [High-Level Architecture](#high-level-architecture)
-- [Repository Structure](#repository-structure)
-- [Development Status](#development-status)
-- [Development Roadmap](#development-roadmap)
-- [Getting Started](#getting-started)
-- [Future Enhancements](#future-enhancements)
-- [Scope and Research Positioning](#scope-and-research-positioning)
-- [Documentation](#documentation)
+## 1. Project Overview
 
-## Introduction
+Students often find it difficult to consistently monitor their study activities, identify topics requiring additional attention, and understand their academic progress.
 
-This project is a web-based system that helps students monitor their academic performance and study behaviour, identify weak areas, and receive personalized, explainable recommendations.
+StudySpark provides a centralized platform where students can:
 
-It is built around one research idea: **a recommendation should not be a one-time output.** The system observes what the student does *after* a recommendation, measures whether it was followed, and uses that evidence to adapt the next recommendation.
+- Manage their academic profile.
+- Organize subjects.
+- Record daily study activities.
+- Track academic scores.
+- View study and performance information.
+- Explore personalized study recommendations.
+- Interact with Spark, an AI-powered study companion.
 
-## Problem Statement
+The project also explores the research direction of student self-monitoring and student-action-driven recommendation adaptation.
 
-Students often struggle to:
+**Working application name:** StudySpark
 
-- identify which subjects or topics they are weak in,
-- maintain consistent study habits, and
-- obtain guidance that is personalized and based on their own data.
+**Project title:** AI Powered Student Self Monitoring & Performance Analysis System
 
-Where tracking tools exist, they are usually passive: they record activity and display charts, but they do not check whether advice was acted on, and they do not change the advice accordingly.
+---
 
-## Research Motivation
+## 2. Key Features
 
-Existing work in learning analytics, self-regulated learning support, explainable feedback and LLM-based personalization already covers performance analysis, explainable recommendations and personalized content. Across the reviewed literature, a fully operationalized and empirically evaluated closed-loop mechanism that explicitly re-monitors student behaviour after a recommendation, and uses the resulting evidence to adapt subsequent recommendations, was not clearly identified.
-
-This project targets that narrower gap. It does not claim that no adaptive educational system exists. Its focus is the specific combination of **recommendation, student action, re-monitoring and adaptation**, implemented as an explicit mechanism that can be evaluated.
-
-LLMs and RAG are treated as implementation mechanisms, not as the claimed novelty.
-
-## Objectives and Research Questions
-
-**Objectives**
-
-- **O1.** Develop a student self-monitoring system that analyses academic performance and behavioural activity.
-- **O2.** Generate personalized and explainable recommendations based on identified performance patterns and learning needs.
-- **O3.** Develop a closed-loop mechanism that uses subsequent student activity and recommendation adherence to adapt future recommendations.
-- **O4.** Evaluate whether the adaptive approach improves student performance and recommendation adherence compared with static recommendations.
-
-**Research questions**
-
-- **RQ1.** Does a closed-loop adaptive self-monitoring approach improve academic performance compared with static recommendations?
-- **RQ2.** Does adaptive recommendation improve adherence to recommended learning actions?
-- **RQ3.** What relationship exists between recommendation adherence, behavioural activity and academic performance improvement?
-- **RQ4.** How does re-monitoring student activity influence the relevance of subsequent recommendations?
-
-## Proposed Solution
-
-Students log study activity and exam/test scores. The system analyses this data, identifies weak areas, and issues recommendations with an explanation. It then tracks whether each recommendation was followed, re-analyses the student's new activity, and adapts the next recommendation.
-
-The system is made of four parts: a browser frontend, a Java (Spring Boot) core backend, a Python (Flask) AI service, and a PostgreSQL database. Two recommendation strategies, **static** and **adaptive**, run behind one identical student interface so they can be compared.
-
-## Core Features
-
-| # | Module | Description |
-|---|---|---|
-| 1 | Student Authentication and Profile | Registration and login; profile data such as course and learner type. |
-| 2 | Student Dashboard | Single view of recent activity, scores and current recommendations. |
-| 3 | Subject-wise Performance Analysis | Scores and trends broken down by subject. |
-| 4 | Study Activity Tracking | Daily logging of study sessions (subject, topic, hours, notes) and test scores. |
-| 5 | Weak Area Detection | Identification of subjects/topics that need attention. |
-| 6 | Personalized Recommendations | Specific, explainable learning actions generated for each student. |
-| 7 | Recommendation Adherence Tracking | Recording whether each recommendation was completed, partly completed, or ignored. |
-| 8 | Adaptive Recommendation Mechanism | Using new activity and adherence evidence to change the next recommendation. |
-| 9 | Performance Progress Visualization | Charts of score trends, study time and progress history. |
-| 10 | Research Data Export | Export of logs, recommendations, adherence and adaptation events for analysis. |
-
-Implementation status of each module is listed under [Development Status](#development-status).
-
-## Closed-Loop Workflow
-
-```mermaid
-flowchart LR
-    A[Student Activity<br/>study logs, scores] --> B[Performance Analysis]
-    B --> C[Identify Weak Areas]
-    C --> D[Personalized Recommendation<br/>with explanation]
-    D --> E[Student Action]
-    E --> F[Re-monitor Activity<br/>and measure adherence]
-    F --> G[Adapt Future Recommendations]
-    G --> D
-```
-
-**Planned adaptation principles** (not yet implemented):
-
-- Low performance and recommendation ignored: reduce task size, increase specificity, or change the recommendation format.
-- Recommendation completed and performance/activity improves: maintain or gradually increase the challenge.
-- Recommendations repeatedly ignored: adjust frequency, difficulty or action size, rather than only rewording.
-- Repeated adherence with stable improvement: continue the current strategy and move to the next suitable learning action.
-
-The key requirement is that **new evidence must change the next recommendation**. If it does not, the mechanism is not adaptive.
-
-The adaptation logic is intended to be an explicit, rule-based decision mechanism that works without the LLM. The LLM is used for language (explaining and phrasing recommendations), not for deciding how to adapt.
-
-## Static vs Adaptive Approach
-
-| Element | Static recommendations | Adaptive recommendations |
-|---|---|---|
-| Initial analysis | Student data is analysed and a recommendation is generated | Same |
-| Student action | Student follows or ignores the recommendation | Same |
-| Re-monitoring | New data may be logged, but the recommendation strategy stays fixed | New activity and adherence are explicitly used for re-analysis |
-| Next recommendation | Generated from the initial data and a fixed strategy | Updated using the newly observed evidence |
-| Role in the study | Comparison baseline | Test of the proposed closed-loop mechanism |
-
-**Common to both groups:** the same interface, the same monitoring and logging process. Group assignment is intended to be stored server-side and **not exposed in any student-facing page or API response**, so that students cannot tell which version they are using. (Planned; not yet implemented.)
-
-**Evaluation plan (working version, to be finalized):**
-
-- Primary outcome: academic performance improvement.
-- Behavioural outcome: recommendation adherence.
-- Supporting indicators: study sessions completed, tasks completed, study consistency, time spent studying, perceived usefulness/relevance of recommendations.
-- Working structure: a short pilot of about 10 days with a baseline assessment (Day 0), daily logging with recommendations (Days 1-9), and a post-assessment plus short survey (Day 10).
-- Still open: study design type, participant allocation, sample size, consent and ethics requirements, and statistical tests.
-
-## Technology Stack
-
-| Layer | Technology | Status in this repository |
-|---|---|---|
-| Core backend | Java 17, Spring Boot 3.3.2, Spring Data JPA, Bean Validation, BCrypt (`spring-security-crypto`), Maven | Present |
-| AI service | Python, Flask 3.0.3 | Present |
-| LLM runtime | Ollama (local; default model `llama3.2`) | Integrated in the Flask service; requires a local Ollama install |
-| External LLM API | Optional alternative to Ollama | Planned; not implemented |
-| Database | PostgreSQL via JPA/Hibernate | Configured and used by the Java backend |
-| Vector search | pgvector | Planned; no code uses it yet |
-| RAG / embeddings | Retrieval-grounded recommendation generation | Planned; not implemented |
-| Frontend | HTML5, CSS3, vanilla JavaScript | Prototype pages only; final frontend stack still to be finalized |
-| Data visualization | Chart.js (loaded from a CDN) | Used in the prototype dashboard with sample data |
-| Tools | Git, GitHub, VS Code, Postman | Postman collection included in `practice/` |
-
-## High-Level Architecture
-
-```
-Browser (frontend)
-      |  HTTP / JSON
-      v
-Java Spring Boot API  (:8080) ---- JPA / SQL ----> PostgreSQL  (pgvector planned)
-      |  HTTP / JSON (internal only)
-      v
-Flask AI service  (:5000) ---- HTTP ----> Ollama local LLM  (:11434)
-```
-
-- The Java service is the only service the frontend is intended to call. It owns authentication, validation, persistence and orchestration.
-- The Flask service is internal. It builds prompts from the data Java sends, calls the local LLM, and returns structured results. It does not connect to the database.
-- If Ollama is not running, the Flask endpoints return a clearly labelled fallback response so the rest of the pipeline can still be tested.
-- **Current limitation:** the frontend pages are not yet connected to the Java API.
-
-**Data model currently created by the backend** (via Hibernate): `students`, `subjects`, `study_logs`, `scores`, `insights`.
-
-**Planned additions** needed for the closed loop: structured recommendation records, adherence records, adaptation-event records, and experiment fields on students (group, consent).
-
-## Repository Structure
-
-Only folders that currently exist are listed.
-
-```
-student-monitoring-system/
-├── docs/                      Architecture and database design document
-├── frontend/
-│   ├── pages/                 auth.html, dashboard.html (prototype pages)
-│   ├── scripts/               mascot.js
-│   └── styles/                styles.css
-├── backend-java/              Spring Boot core backend (Maven)
-│   └── src/main/
-│       ├── java/com/studyspark/
-│       │   ├── checkin/       Daily check-in endpoint and Flask client
-│       │   ├── config/        CORS configuration
-│       │   ├── dashboard/     Dashboard summary endpoint
-│       │   ├── exception/     Custom exceptions and global error handler
-│       │   ├── insight/       AI insight generation and storage
-│       │   ├── score/         Test/exam scores
-│       │   ├── student/       Registration, login, student entity
-│       │   ├── studylog/      Study log entries
-│       │   └── subject/       Subject lookup/creation
-│       └── resources/         application.properties
-├── ai-service-flask/          Flask AI service (app.py, requirements.txt, .env.example)
-└── practice/                  Postman collection and a Tailwind learning exercise
-```
-
-## Development Status
-
-**Last updated:** 2026-11-01
-
-Update this section as features are completed. Status values: **Implemented** (code present), **Partial**, **Not started**.
-
-### Core modules
-
-| # | Module | Status | What exists in the repository |
-|---|---|---|---|
-| 1 | Student Authentication and Profile | Partial | `POST /api/auth/register` and `POST /api/auth/login` with BCrypt-hashed passwords and profile fields (name, username, age, phone, email, course, learner type, avatar). No JWT/session handling; no profile-edit or username-change endpoints. |
-| 2 | Student Dashboard | Partial | Backend `GET /api/dashboard/summary` (hours in the last 7 days, average score, recent logs and scores). `frontend/pages/dashboard.html` is a prototype on in-memory sample data and is not connected to the API. |
-| 3 | Subject-wise Performance Analysis | Not started | The backend summary is overall, not per subject. The prototype dashboard shows hours by subject from sample data only. |
-| 4 | Study Activity Tracking | Implemented (backend) | `POST/GET /api/logs` and `POST/GET /api/scores`; subjects are created on first use. The frontend entry form is a prototype and is not connected. |
-| 5 | Weak Area Detection | Partial | `POST /api/insights/generate` asks the local LLM (via Flask `/analyze`) for a free-text weak-areas field. There is no deterministic or rule-based detection. |
-| 6 | Personalized Recommendations | Partial | LLM-generated free-text recommendations are stored in `insights`. They are not structured, not individually trackable, and have no per-recommendation explanation field. |
-| 7 | Recommendation Adherence Tracking | Not started | No data model or endpoint. |
-| 8 | Adaptive Recommendation Mechanism | Not started | No rule engine and no static baseline strategy. |
-| 9 | Performance Progress Visualization | Partial | Chart.js prototype (score trend, hours by subject) on sample data; not fed by the API. |
-| 10 | Research Data Export | Not started | No export endpoint. |
-
-### Research-support requirements
-
-| Requirement | Status |
+| Module | Description |
 |---|---|
-| Hidden static/adaptive group assignment | Not started |
-| Participant consent capture | Not started |
-| Baseline (Day 0) and post (Day 10) assessment capture | Not started |
+| Student Authentication | Student registration and login with password protection and JWT-based authentication. |
+| Student Dashboard | Centralized view of academic activity and progress. |
+| Subject Management | Add and manage academic subjects. |
+| Study Tracker | Record study sessions, topics, dates, study hours and notes. |
+| Academic Performance | Record and review test and examination scores. |
+| Progress Visualization | Display academic and study-related information through dashboard charts. |
+| Recommendations | Student-facing interface for reviewing study recommendations. |
+| Spark AI Study Companion | AI chat interface for academic questions and study guidance. |
+| Context-Aware AI Support | Recent study activity can be supplied as context for AI responses. |
+| RAG-Based Knowledge Retrieval | Retrieves relevant information from a built-in academic knowledge base before generating AI responses. |
+| Student Engagement | Supporting interface elements such as mascot and mini-games. |
 
-### Other components
+---
 
-| Component | Status | Notes |
-|---|---|---|
-| Java entities: students, subjects, study logs, scores, insights | Implemented | Tables are generated by Hibernate (`ddl-auto=update`). |
-| Validation and HTTP error handling | Implemented | 201 on create, 400 validation, 401 invalid credentials, 404 unknown student, 409 duplicate username/email. |
-| Daily check-in endpoint (`POST /api/checkin`) | Implemented | Uses the student's real recent logs; falls back to a small hardcoded sample if the student has none. |
-| Flask AI service (`/checkin`, `/analyze`, `/health`) | Implemented | Uses a local Ollama model; returns a labelled fallback if Ollama is unreachable. |
-| Frontend prototype pages (sign-up/login, dashboard) | Prototype | Client-side validation and sample data only; no network calls to the backend. |
-| Mascot animation (`mascot.js`) | Prototype | Frontend-only; not driven by backend streak data. |
-| Postman collection | Implemented | `practice/studyspark.postman_collection.json`. |
-| Architecture and database design document | Implemented | Predates the research alignment; see [Documentation](#documentation). |
-| pgvector, embeddings, RAG | Not started | Described in the design document only. |
-| Automated tests / CI | Not started | No test classes or CI configuration in the repository. |
+## 3. Technology Stack
 
-### Verification checklist
+| Layer | Technology |
+|---|---|
+| Frontend | HTML5, CSS3, JavaScript |
+| Core Backend | Java, Spring Boot 3.3.2 |
+| Backend Architecture | REST APIs |
+| Authentication | JWT and password hashing |
+| Database | PostgreSQL |
+| ORM | Spring Data JPA / Hibernate |
+| AI Service | Python, Flask |
+| Large Language Model | Llama 3.2 |
+| Local Model Runtime | Ollama |
+| Retrieval | Keyword-based knowledge retrieval |
+| Version Control | Git and GitHub |
+| Development Tools | VS Code, Postman |
 
-No build output, test results or end-to-end run results are recorded in this repository yet. Tick these off as they are confirmed:
+**Important implementation note:** The current RAG implementation uses keyword-based retrieval from a built-in academic knowledge base. It does not currently use pgvector or embedding-based vector search.
 
-- [ ] Java backend compiles and starts (`mvn spring-boot:run`)
-- [ ] Tables are created in PostgreSQL on first start
-- [ ] Postman flow works: register, login, log, score, summary, generate insight, check-in
-- [ ] Flask `/health` reports Ollama reachable
-- [ ] Frontend connected to the backend
+---
 
-### Known limitations
+## 4. System Architecture
 
-- Endpoints are not authenticated; any caller who knows a `studentId` can read or write that student's data. This must be addressed before real participants use the system.
-- CORS currently allows all origins (development setting).
-- Insights are stored as free text, so individual recommendations cannot yet be tracked for adherence.
-- LLM output is not validated beyond basic JSON parsing in the Flask service.
-- Failure of the Flask service is not explicitly handled in the Java layer.
-- Hibernate generates the schema, so table definitions may differ slightly from the SQL in the design document.
+StudySpark follows a multi-component architecture.
 
-## Development Roadmap
+### Frontend Layer
+The browser-based interface provides student registration, login, dashboard access, study activity management, academic progress views, recommendations and AI chat.
 
-No dates are fixed. Tick items as they are completed.
+### Java Backend Layer
+The Spring Boot backend handles:
+- Authentication and authorization.
+- Student and academic data management.
+- Subject, study-log and score operations.
+- Database communication.
+- Communication with the Flask AI service.
 
-**Phase 0: Foundation and design**
-- [x] System architecture and database design document
-- [ ] Align the design document with the research design (recommendation, adherence and adaptation records; revised priorities)
-- [ ] Finalize research methodology (design type, allocation, metrics, protocol)
+### AI Service Layer
+The Flask service:
+- Receives academic questions and relevant student context.
+- Retrieves relevant information from the academic knowledge base.
+- Constructs the prompt using retrieved context.
+- Communicates with the local Llama 3.2 model through Ollama.
+- Returns the generated response.
 
-**Phase 1: Core platform**
-- [x] Authentication, study logs, scores, dashboard summary, insights and check-in endpoints (code present)
-- [x] Flask AI service with local LLM integration
-- [ ] Verify build and end-to-end run
-- [ ] Add automated tests
+### Database Layer
+PostgreSQL stores the application's persistent student and academic information.
 
-**Phase 2: Frontend integration**
-- [ ] Decide the final frontend stack
-- [ ] Connect sign-up/login to the API
-- [ ] Connect dashboard, activity entry and charts to the API
-- [ ] Add subject-wise analysis
+### Architecture Flow
 
-**Phase 3: Closed-loop engine (research-critical)**
-- [ ] Structured recommendation records (action, target subject/topic, size, due time, explanation)
-- [ ] Adherence tracking
-- [ ] Rule-based adaptation engine
-- [ ] Static baseline strategy
-- [ ] Adaptation event log
+```text
+                 STUDENT
+                    |
+                    v
+          FRONTEND (HTML/CSS/JS)
+                    |
+                    | HTTP / JSON
+                    v
+          JAVA SPRING BOOT API
+             /            \
+            /              \
+           v                v
+    PostgreSQL          Flask AI Service
+    Database                  |
+                              v
+                     Keyword-Based Retrieval
+                              |
+                              v
+                       Context Builder
+                              |
+                              v
+                        Ollama Runtime
+                              |
+                              v
+                         Llama 3.2
+                              |
+                              v
+                    Generated AI Response
+                              |
+                              v
+                    Java Backend API
+                              |
+                              v
+                       Frontend Chat
+```
 
-**Phase 4: Experiment support**
-- [ ] Consent capture
-- [ ] Hidden group assignment
-- [ ] Baseline and post assessment capture
-- [ ] Research data export
-- [ ] Authentication hardening (token-based) before real participants
+---
 
-**Phase 5: Pilot and evaluation**
-- [ ] Run pilot with participants
-- [ ] Analyse results
-- [ ] Report findings
+## 5. Spark AI and RAG Workflow
 
-**Phase 6: Enhancements**
-- [ ] pgvector and RAG-grounded generation
-- [ ] Engagement features (see [Future Enhancements](#future-enhancements))
+Spark is the AI-powered study companion integrated into the student dashboard.
 
-## Getting Started
+The current AI interaction follows this workflow:
+
+1. The student enters an academic question in the chat interface.
+2. The frontend sends the question to the Java backend.
+3. Recent study logs are included as student-specific context.
+4. Java forwards the request to the Flask AI service.
+5. Flask retrieves relevant documents from the built-in academic knowledge base using keyword matching.
+6. Retrieved information and recent study context are used to construct the prompt.
+7. Ollama runs the Llama 3.2 model to generate a response.
+8. Flask returns the response to Java.
+9. Java sends the response back to the frontend.
+10. The student sees the AI-generated answer in the dashboard.
+
+### Current Knowledge Base
+
+The built-in knowledge base contains 10 academic documents covering:
+
+- Operating Systems: Process Management, CPU Scheduling, Memory Management and File Systems.
+- Java: Object-Oriented Programming and Exception Handling.
+- DBMS: Normalization and SQL.
+- Data Structures: Arrays and Linked Lists.
+- Web Development: HTML, CSS and JavaScript.
+
+The Flask health endpoint can be used to inspect the AI service and RAG status.
+
+---
+
+## 6. Student Self-Monitoring Workflow
+
+The application supports the following student workflow:
+
+```text
+          Student Registration / Login
+                     |
+                     v
+                Dashboard
+                     |
+          +----------+----------+
+          |          |          |
+          v          v          v
+       Subjects   Study Logs   Scores
+          |          |          |
+          +----------+----------+
+                     |
+                     v
+              Academic Overview
+                     |
+          +----------+----------+
+          |                     |
+          v                     v
+    Recommendations        Spark AI Chat
+          |                     |
+          v                     v
+    Progress Review       AI Guidance
+```
+
+The broader research framework is:
+
+**Monitor → Analyse → Recommend → Act → Re-monitor → Adapt**
+
+This framework represents the research direction. The complete experimental adaptation mechanism and its evaluation should be treated separately from the currently implemented application features.
+
+---
+
+## 7. Repository Structure
+
+```text
+student-monitoring-system/
+│
+├── ai-service-flask/
+│   ├── app.py
+│   └── requirements.txt
+│
+├── backend-java/
+│   ├── pom.xml
+│   └── src/
+│       └── main/
+│           ├── java/
+│           │   └── com/studyspark/
+│           └── resources/
+│
+├── frontend/
+│   ├── pages/
+│   ├── scripts/
+│   └── styles/
+│
+├── docs/
+│
+├── practice/
+│
+└── README.md
+```
+
+---
+
+## 8. Running the Project Locally
+
+The application currently uses separate local services.
 
 ### Prerequisites
 
-- Java 17 and Maven
+- Java and Maven
 - PostgreSQL
-- Python 3 (3.9+ recommended)
-- [Ollama](https://ollama.com) with a pulled model (optional but needed for real AI output)
+- Python
+- Ollama
+- Llama 3.2 model
+- A modern web browser
 
-### 1. Database
+### Step 1: Start PostgreSQL
 
-```
-psql -U postgres
-CREATE DATABASE studyspark;
-\q
-```
+Ensure PostgreSQL is running and the StudySpark database is configured.
 
-Tables are created automatically on first start (`spring.jpa.hibernate.ddl-auto=update`). You do not need to run SQL by hand.
+Database connection settings must match the local backend configuration.
 
-### 2. Ollama (optional)
+### Step 2: Start Ollama
 
-```
+Ensure Ollama is installed and the required model is available.
+
+```powershell
 ollama pull llama3.2
 ollama serve
 ```
 
-### 3. Flask AI service
+### Step 3: Start the Flask AI Service
 
-```
+```powershell
 cd ai-service-flask
+
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+
+.\venv\Scripts\Activate.ps1
+
 pip install -r requirements.txt
+
 python app.py
 ```
 
-Runs on `http://localhost:5000`. Open `http://localhost:5000/health` to check whether Ollama is reachable. `.env.example` can be copied to `.env` to override defaults.
+AI service:
 
-### 4. Java backend
-
+```text
+http://localhost:5000
 ```
+
+Health check:
+
+```text
+http://localhost:5000/health
+```
+
+### Step 4: Start the Java Backend
+
+Open another terminal:
+
+```powershell
 cd backend-java
+
 mvn spring-boot:run
 ```
 
-Runs on `http://localhost:8080`.
+Backend:
 
-### 5. Frontend prototype
-
-The pages are plain HTML and do not yet call the backend. Open `frontend/pages/auth.html` in a browser, or serve the folder:
-
+```text
+http://localhost:8080
 ```
-cd frontend/pages
+
+### Step 5: Start the Frontend
+
+Open another terminal:
+
+```powershell
+cd frontend
+
 python -m http.server 5500
 ```
 
-### Environment variables
+Open the authentication page:
 
-| Variable | Used by | Default |
-|---|---|---|
-| `DB_URL` | Java | `jdbc:postgresql://localhost:5432/studyspark` |
-| `DB_USERNAME` | Java | `postgres` |
-| `DB_PASSWORD` | Java | `postgres` |
-| `DDL_AUTO` | Java | `update` |
-| `SHOW_SQL` | Java | `false` |
-| `OLLAMA_BASE_URL` | Flask | `http://localhost:11434` |
-| `OLLAMA_MODEL` | Flask | `llama3.2` |
-
-### Implemented API endpoints (Java)
-
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/api/auth/register` | Create a student account |
-| POST | `/api/auth/login` | Log in (returns `studentId`; no token yet) |
-| POST | `/api/logs` | Add a study log entry |
-| GET | `/api/logs?studentId=` | List a student's logs |
-| POST | `/api/scores` | Add a score |
-| GET | `/api/scores?studentId=` | List a student's scores |
-| GET | `/api/dashboard/summary?studentId=` | Aggregated summary |
-| POST | `/api/insights/generate?studentId=` | Generate and store an AI insight |
-| GET | `/api/insights?studentId=` | List stored insights |
-| POST | `/api/checkin` | Daily check-in message |
-
-Example request bodies:
-
-```json
-// POST /api/auth/register
-{
-  "name": "Ananya Rao", "username": "ananya_r", "age": 20,
-  "phone": "9876543210", "email": "ananya@example.com",
-  "password": "demo1234", "course": "B.Tech CSE",
-  "learnerType": "university", "avatarId": "atom"
-}
-
-// POST /api/logs
-{
-  "studentId": 1, "subject": "Data Structures", "logDate": "2026-08-17",
-  "hoursSpent": 2.5, "topic": "Binary Search Trees", "notes": "Practiced traversals"
-}
+```text
+http://localhost:5500/pages/auth.html
 ```
 
-A ready-made Postman collection with the full flow is in `practice/studyspark.postman_collection.json`. Its first section (JSONPlaceholder) is only a practice exercise and is not part of the system.
+The frontend, Java backend, Flask service and Ollama runtime must be running for the complete local application workflow.
 
-## Future Enhancements
+**Configuration note:** Set database credentials, JWT configuration and service URLs according to the local environment. Never commit passwords, JWT secrets or other credentials to GitHub.
 
-Deferred until the closed-loop mechanism is working and evaluated:
+---
 
-- pgvector embeddings and retrieval-grounded (RAG) recommendation generation
-- Optional external LLM API support
-- Token-based authentication (JWT)
-- Free-text chat and curated resource suggestions for topics a student finds confusing
-- Streaks, mascot reactions driven by real data, mini-games, a token/reward economy, and an opt-in leaderboard
-- Career roadmap generation
-- Media attachments and push-notification reminders
+## 9. Development and Implementation Status
 
-Engagement features are secondary to the research contribution. Some of them (for example a leaderboard) could influence student behaviour and confound the comparison, so they may be excluded from, or controlled in, the pilot.
+The following table distinguishes implemented application modules from broader research objectives.
 
-## Scope and Research Positioning
+| Component | Current Status |
+|---|---|
+| Student Registration and Login | Implemented |
+| JWT Authentication | Implemented |
+| PostgreSQL Integration | Implemented |
+| Subject Management | Implemented |
+| Study Activity Logging | Implemented |
+| Academic Score Management | Implemented |
+| Dashboard Interface | Implemented |
+| Progress Charts | Integrated in dashboard |
+| Recommendations Interface | Implemented |
+| Spark AI Chat Interface | Implemented |
+| Java-to-Flask Integration | Implemented |
+| Ollama Llama 3.2 Integration | Implemented |
+| Keyword-Based RAG Retrieval | Implemented |
+| Recent Study Log Context for AI | Integrated |
+| Complete Student-Action-Driven Adaptive Engine | Not established as implemented |
+| Static-versus-Adaptive Experimental Evaluation | Pending research methodology and evaluation |
 
-- The evaluation is planned as a **short-term pilot**, not a long-term study of self-regulated learning.
-- Behavioural indicators from logs are not equivalent to a validated self-regulated learning measure.
-- LLM personalization, RAG, dashboards and chatbots are not claimed as the novelty.
-- The contribution is the operationalized loop of recommendation, student action, re-monitoring and adaptation, and its comparison with a static strategy.
+---
 
-## Documentation
+## 10. Current Limitations and Scope
 
-- [`docs/system_architecture_and_db_design.md`](docs/system_architecture_and_db_design.md): architecture, database schema, API contract, RAG pipeline design and build order.
+- The application is currently configured for local development.
+- Public internet deployment has not yet been established.
+- The RAG implementation uses keyword-based retrieval rather than vector embeddings.
+- The built-in knowledge base covers selected academic topics and is not an exhaustive academic resource.
+- AI responses depend on the availability of the local Ollama service and the configured model.
+- The complete research-oriented recommendation, adherence and adaptation loop requires separate implementation and evaluation.
+- The effectiveness of the system in improving long-term student performance has not been established.
 
-This design document was written before the research direction was finalized. Its build order and data model do not yet include recommendation, adherence and adaptation records, and it should be updated to match this README. Where they differ, treat this README's status section as the record of what is actually implemented.
+---
+
+## 11. Future Enhancements
+
+Potential future improvements include:
+
+- More extensive academic knowledge coverage.
+- Improved retrieval techniques.
+- Structured recommendation and adherence records.
+- Explicit rule-based recommendation adaptation.
+- Research data export and evaluation support.
+- Deployment to a suitable hosting environment.
+- Additional student engagement and learning-support features.
+
+These are future directions and should not be interpreted as already implemented functionality.
+
+---
+
+## 12. Research Positioning
+
+The project is centered on student self-monitoring, academic performance analysis and personalized learning support.
+
+Its broader research direction investigates how student activity after receiving recommendations can inform subsequent monitoring and recommendation decisions.
+
+The research framework is:
+
+**Monitor → Analyse → Recommend → Act → Re-monitor → Adapt**
+
+The AI assistant and RAG pipeline support academic guidance, while the proposed student-action-driven adaptation mechanism remains a distinct research objective requiring explicit implementation and evaluation.
+
+---
+
+## 13. Repository
+
+**GitHub Repository:**  
+https://github.com/Rinky-jaswani/student-self-monitoring-system
+
+**Project Name:** StudySpark  
+**Project Domain:** Educational Technology / AI-Assisted Learning  
+**Development Stack:** Java, Spring Boot, PostgreSQL, Python, Flask, HTML, CSS and JavaScript.
