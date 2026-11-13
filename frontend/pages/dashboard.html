@@ -13,80 +13,94 @@
 <style>
   body { padding-bottom: 60px; }
 
-  /* ---------- Navbar ---------- */
   .navbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    position: sticky; top: 0; z-index: 20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:15px clamp(16px,4vw,42px);
+    border-bottom:1px solid var(--border);
+    background:rgba(11,16,32,.88);
+    backdrop-filter:blur(18px);
+    position:sticky; top:0; z-index:20;
+    box-shadow:0 8px 28px rgba(0,0,0,.16);
   }
-  .navbar .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; }
-  .navbar .right { display: flex; align-items: center; gap: 16px; }
+  .navbar .brand {display:flex;align-items:center;gap:11px;font-weight:800;font-size:18px;letter-spacing:-.4px}
+  .navbar .brand svg {filter:drop-shadow(0 0 10px rgba(139,112,255,.65))}
+  .navbar .right {display:flex;align-items:center;gap:12px}
   .streak-pill {
-    display: flex; align-items: center; gap: 6px;
-    background: var(--accent-soft);
-    padding: 6px 14px; border-radius: 999px;
-    font-family: var(--font-data); font-weight: 700; color: var(--accent-dark);
-    font-size: 13.5px;
+    display:flex;align-items:center;gap:7px;
+    background:linear-gradient(110deg,rgba(139,112,255,.18),rgba(53,197,239,.10));
+    border:1px solid rgba(139,112,255,.24);
+    padding:8px 14px;border-radius:999px;
+    font-family:var(--font-data);font-weight:700;color:#c4b7ff;font-size:12px;
   }
-  .nav-avatar {
-    width: 34px; height: 34px; border-radius: 50%;
-    background: var(--bg-alt); border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--accent);
-  }
-  .nav-avatar svg { width: 17px; height: 17px; }
+  .nav-avatar {width:38px;height:38px;border-radius:13px;background:var(--accent-soft);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:#b8a7ff}
+  .nav-avatar svg {width:19px;height:19px}
 
-  /* ---------- Layout ---------- */
-  .dash-main { padding: 30px 24px; }
-  .page-head { margin-bottom: 20px; }
-  .page-head h1 { font-size: 24px; margin-bottom: 4px; }
-  .page-head p { color: var(--text-muted); font-size: 14px; margin: 0; }
+  .dash-main {padding:38px 24px;max-width:1320px}
+  .page-head {margin-bottom:25px;position:relative}
+  .page-head h1 {font-size:clamp(25px,3vw,34px);margin-bottom:7px;letter-spacing:-1.2px;background:linear-gradient(100deg,#fff 15%,#b7a5ff 65%,#62d8f3);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .page-head p {color:var(--text-muted);font-size:14px;margin:0}
+  .page-head::after {content:"";display:block;width:58px;height:3px;margin-top:15px;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent-blue))}
 
-  /* ---------- Stat cards ---------- */
-  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
-  @media (max-width: 700px) { .stats-row { grid-template-columns: 1fr; } }
+  .stats-row {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;margin-bottom:23px}
   .stat-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-md); padding: 16px 18px;
+    position:relative;overflow:hidden;
+    background:linear-gradient(145deg,rgba(28,38,65,.96),rgba(17,25,44,.96));
+    border:1px solid var(--border);border-radius:18px;padding:21px 23px;
+    box-shadow:var(--shadow-card);transition:transform .22s,border-color .22s,box-shadow .22s;
   }
-  .stat-card .value { font-family: var(--font-data); font-size: 24px; font-weight: 700; color: var(--accent-dark); }
-  .stat-card .label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .stat-card:hover {transform:translateY(-4px);border-color:rgba(139,112,255,.48);box-shadow:var(--shadow-glow)}
+  .stat-card::after {content:"";position:absolute;width:110px;height:110px;right:-40px;top:-48px;border-radius:50%;background:rgba(139,112,255,.10);filter:blur(2px)}
+  .stat-card .value {font-family:var(--font-data);font-size:clamp(23px,2.4vw,30px);font-weight:700;color:#b6a5ff;position:relative;z-index:1}
+  .stat-card .label {font-size:12px;color:var(--text-muted);margin-top:5px;letter-spacing:.02em;position:relative;z-index:1}
 
-  /* ---------- Section card headers ---------- */
-  .section-card { margin-bottom: 20px; }
-  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .section-head h2 { font-size: 16px; }
+  .section-card {margin-bottom:21px}
+  .section-head {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}
+  .section-head h2 {font-size:16px;letter-spacing:-.3px}
+  .section-head .btn {white-space:nowrap}
 
-  /* ---------- Sidebar mascot card ---------- */
-  .sidebar-card { text-align: center; padding: 26px 20px; }
-  .sidebar-card .mascot { width: 100px; height: 100px; margin-bottom: 4px; }
-  .streak-numbers { display: flex; justify-content: center; gap: 24px; margin: 16px 0 6px; }
-  .streak-numbers .num { font-family: var(--font-data); font-size: 20px; font-weight: 700; color: var(--text); }
-  .streak-numbers .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-card {text-align:center;padding:27px 21px;background:radial-gradient(circle at 50% 15%,rgba(139,112,255,.16),transparent 48%),linear-gradient(145deg,#192440,#11192d)}
+  .sidebar-card .mascot {width:112px;height:112px;margin:0 auto 8px}
+  .streak-numbers {display:flex;justify-content:center;gap:34px;margin:20px 0 8px}
+  .streak-numbers .num {font-family:var(--font-data);font-size:23px;font-weight:700;color:#c4b5ff}
+  .streak-numbers .lbl {font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.09em}
+  .sidebar-card p {font-size:12px;color:var(--text-muted);margin:13px 0 0}
 
-  /* ---------- Chart cards ---------- */
-  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 700px) { .charts-row { grid-template-columns: 1fr; } }
-  .chart-card canvas { max-height: 200px; }
+  .charts-row {display:grid;grid-template-columns:1fr 1fr;gap:17px}
+  .chart-card {min-width:0}
+  .chart-card canvas {max-height:220px}
 
-  /* ---------- Add entry modal ---------- */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0; background: rgba(55, 53, 47, 0.35);
-    align-items: center; justify-content: center; z-index: 50;
+  .modal-overlay {display:none;position:fixed;inset:0;background:rgba(3,7,18,.78);backdrop-filter:blur(8px);align-items:center;justify-content:center;z-index:50}
+  .modal-overlay.active {display:flex}
+  .modal-box {width:100%;max-width:430px;margin:16px;background:#17213a;border:1px solid rgba(139,112,255,.28);box-shadow:0 25px 80px rgba(0,0,0,.48)}
+  .modal-box h2 {font-size:19px;margin-bottom:18px}
+  .row-2 {display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  #activityTable {min-width:600px}
+  .section-card {overflow-x:auto}
+
+  @media(max-width:900px) {
+    .grid-dashboard {grid-template-columns:1fr}
+    .sidebar-card {max-width:none}
   }
-  .modal-overlay.active { display: flex; }
-  .modal-box { width: 100%; max-width: 400px; margin: 16px; }
-  .modal-box h2 { font-size: 18px; margin-bottom: 16px; }
-  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:700px) {
+    .stats-row {grid-template-columns:1fr}
+    .charts-row {grid-template-columns:1fr}
+    .dash-main {padding:25px 15px}
+    .navbar {padding:12px 14px}
+    .navbar .right {gap:7px}
+    .streak-pill {font-size:10px;padding:7px 9px}
+  }
+  @media(max-width:480px) {
+    .navbar .right .btn {font-size:11px!important;padding:6px 8px!important}
+    .row-2 {grid-template-columns:1fr}
+    .section-head {align-items:flex-start;flex-wrap:wrap}
+  }
 </style>
 </head>
 <body>
 
  
 <nav class="navbar">
+  <a href="games.html">🎮 Games</a>
   <div class="brand">
     <svg width="22" height="22" viewBox="0 0 26 26">
       <circle cx="13" cy="13" r="12" fill="#6C5CE7"/>
@@ -263,10 +277,10 @@
 <script src="../scripts/mascot.js"></script>
 <script>
 const SUBJECT_COLORS = [
-  '#6C5CE7',
-  '#4B3EC0',
-  '#8477EA',
-  '#A79BF0'
+  '#9278FF',
+  '#35C5EF',
+  '#B49BFF',
+  '#54D6B2'
 ];
 
 let subjects = [];
@@ -540,8 +554,8 @@ function renderCharts() {
     SUBJECT_COLORS[index % SUBJECT_COLORS.length]
   );
 
-  const gridColor = '#EFEFED';
-  const textColor = '#8A8781';
+  const gridColor = 'rgba(164,174,220,0.12)';
+  const textColor = '#8994B2';
 
   if (scoreChart) scoreChart.destroy();
 
@@ -553,11 +567,11 @@ function renderCharts() {
         labels: scoreLabels,
         datasets: [{
           data: scoreData,
-          borderColor: '#6C5CE7',
-          backgroundColor: 'rgba(108,92,231,0.10)',
+          borderColor: '#9278FF',
+          backgroundColor: 'rgba(146,120,255,0.16)',
           tension: 0.35,
           fill: true,
-          pointBackgroundColor: '#6C5CE7'
+          pointBackgroundColor: '#35C5EF', pointBorderColor: '#151D32', pointRadius: 4
         }]
       },
       options: {
@@ -591,7 +605,7 @@ function renderCharts() {
         datasets: [{
           data: subjectData,
           backgroundColor: subjectColors,
-          borderRadius: 6
+          borderRadius: 8
         }]
       },
       options: {

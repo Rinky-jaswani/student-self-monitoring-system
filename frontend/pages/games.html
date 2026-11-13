@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudySpark | Study Games</title>
+<style>
+:root{--bg:#0b1020;--panel:#151f36;--panel2:#1b2945;--text:#f4f5ff;--muted:#aeb9d2;--accent:#8b70ff;--cyan:#55c7e8;--green:#45d6a0;--border:rgba(164,174,220,.16)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 12% 0%,rgba(108,92,231,.15),transparent 38%),radial-gradient(ellipse at 90% 15%,rgba(53,197,239,.07),transparent 32%),var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.6}
+.wrap{width:min(1100px,calc(100% - 40px));margin:0 auto;padding:34px 0 60px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:34px}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.5px}.brand span{color:var(--accent)}
+a.back{color:#c9bcff;text-decoration:none;border:1px solid var(--border);padding:9px 15px;border-radius:11px}
+.eyebrow{color:var(--cyan);font-size:12px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase}
+h1{font-size:clamp(30px,5vw,44px);line-height:1.15;letter-spacing:-1.4px;margin:8px 0 12px}
+.intro{color:var(--muted);max-width:650px;margin:0 0 28px}
+.scorebar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,#192744,#121c32);border:1px solid var(--border);border-radius:18px;padding:17px 22px;margin:26px 0 30px}
+.score{font-size:25px;font-weight:800;color:#c5b8ff}.score small{display:block;color:var(--muted);font-size:12px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.game{background:linear-gradient(145deg,#192440,#11192d);border:1px solid var(--border);border-radius:20px;padding:25px;min-width:0;box-shadow:0 10px 28px rgba(0,0,0,.16)}
+.game h2{font-size:21px;margin:0 0 7px}.desc{color:var(--muted);font-size:14px;margin:0 0 20px}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 16px;background:var(--accent);color:white;font-weight:700;min-height:44px}
+button.secondary{background:#263653;border:1px solid var(--border);color:var(--text)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}
+.status{color:var(--muted);font-size:13px;min-height:25px;margin-top:13px}
+.memory{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.tile{min-height:65px;padding:5px;background:#263653;border:1px solid var(--border);font-size:25px}
+.tile.revealed{background:#312b59;border-color:rgba(139,112,255,.7)}
+.tile.matched{background:rgba(69,214,160,.15);border-color:rgba(69,214,160,.5);color:var(--green)}
+.quizbox{background:#101a2e;border:1px solid var(--border);border-radius:14px;padding:18px}
+.question{font-weight:700;margin:0 0 15px}
+.answers{display:grid;gap:9px}
+.answers button{text-align:left;background:#263653;border:1px solid var(--border);font-weight:600}
+.answers button.correct{background:rgba(69,214,160,.16);border-color:var(--green);color:#8df0c7}
+.answers button.wrong{background:rgba(255,113,133,.14);border-color:#ff7185;color:#ff9eaa}
+.note{color:var(--muted);font-size:12px;margin-top:22px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.wrap{width:min(100% - 28px,600px)}.game{padding:19px}.top{align-items:flex-start}}
+@media(prefers-reduced-motion:no-preference){button{transition:transform .16s ease,filter .16s ease}button:hover{transform:translateY(-1px);filter:brightness(1.08)}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <div class="brand">Study<span>Spark</span></div>
+    <a class="back" href="dashboard.html">← Back to Dashboard</a>
+  </header>
+  <div class="eyebrow">Learn • Play • Repeat</div>
+  <h1>A little learning break. ✦</h1>
+  <p class="intro">Take a short brain break with quick study games. Earn Spark Points as you play—no streak pressure, just practice.</p>
+  <section class="scorebar" aria-live="polite">
+    <div><strong>Your game progress</strong><div style="color:var(--muted);font-size:13px">Points are saved in this browser.</div></div>
+    <div class="score"><span id="points">0</span><small>SPARK POINTS</small></div>
+  </section>
+  <section class="grid">
+    <article class="game">
+      <div class="eyebrow">Game 01 · Memory</div>
+      <h2>Memory Match</h2>
+      <p class="desc">Flip the tiles and find all matching pairs. A quick exercise for attention and recall.</p>
+      <div class="memory" id="memoryBoard" aria-label="Memory matching game"></div>
+      <div class="controls"><button id="memoryRestart" class="secondary" type="button">Restart game</button></div>
+      <div class="status" id="memoryStatus" aria-live="polite">Find all 4 pairs to earn 20 points.</div>
+    </article>
+    <article class="game">
+      <div class="eyebrow">Game 02 · Quick Quiz</div>
+      <h2>60-Second Brain Boost</h2>
+      <p class="desc">Answer short computer-science questions. Each correct answer earns 5 points.</p>
+      <div class="quizbox">
+        <div id="quizProgress" class="eyebrow" style="margin-bottom:10px">Question 1 of 5</div>
+        <p class="question" id="question">Loading question…</p>
+        <div class="answers" id="answers"></div>
+      </div>
+      <div class="controls"><button id="quizRestart" class="secondary" type="button">Restart quiz</button></div>
+      <div class="status" id="quizStatus" aria-live="polite">Complete the 5 questions to finish the round.</div>
+    </article>
+  </section>
+  <p class="note">Games are optional practice activities. Spark Points are a local engagement feature and do not affect academic scores or recommendations.</p>
+</main>
+<script>
+(() => {
+  const pointsEl = document.getElementById('points');
+  let points = Number(localStorage.getItem('studysparkGamePoints') || 0);
+  if (!Number.isFinite(points) || points < 0) points = 0;
+  const renderPoints = () => { pointsEl.textContent = points; localStorage.setItem('studysparkGamePoints', String(points)); };
+  const award = n => { points += n; renderPoints(); };
+  renderPoints();
+
+  const symbols = ['📘','🧠','💡','🎯'];
+  const board = document.getElementById('memoryBoard');
+  const memoryStatus = document.getElementById('memoryStatus');
+  let first = null, lock = false, matches = 0, moves = 0, memoryDone = false, hideTimer = null;
+  function startMemory() {
+    clearTimeout(hideTimer); first = null; lock = false; matches = 0; moves = 0; memoryDone = false;
+    memoryStatus.textContent = 'Find all 4 pairs to earn 20 points.';
+    const deck = [...symbols, ...symbols].sort(() => Math.random() - .5);
+    board.innerHTML = '';
+    deck.forEach((symbol, index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'tile'; btn.textContent = '?';
+      btn.setAttribute('aria-label', 'Hidden tile ' + (index + 1));
+      btn.addEventListener('click', () => {
+        if (lock || btn.classList.contains('revealed') || btn.classList.contains('matched') || memoryDone) return;
+        btn.textContent = symbol; btn.classList.add('revealed'); btn.setAttribute('aria-label', symbol);
+        if (!first) { first = {btn, symbol}; return; }
+        moves++;
+        if (first.symbol === symbol) {
+          btn.classList.add('matched'); first.btn.classList.add('matched'); first = null; matches++;
+          if (matches === symbols.length) {
+            memoryDone = true; award(20);
+            memoryStatus.textContent = `All pairs matched in ${moves} moves! +20 Spark Points`;
+          }
+        } else {
+          lock = true; const previous = first.btn; first = null;
+          hideTimer = setTimeout(() => {
+            btn.textContent = '?'; previous.textContent = '?';
+            btn.classList.remove('revealed'); previous.classList.remove('revealed');
+            btn.setAttribute('aria-label', 'Hidden tile'); previous.setAttribute('aria-label', 'Hidden tile');
+            lock = false;
+          }, 750);
+        }
+      });
+      board.appendChild(btn);
+    });
+  }
+  document.getElementById('memoryRestart').addEventListener('click', startMemory);
+  startMemory();
+
+  const questions = [
+    {q:'Which data structure follows FIFO?',a:['Stack','Queue','Tree','Graph'],c:1},
+    {q:'What does HTML stand for?',a:['HyperText Markup Language','HighText Machine Language','HyperTool Multi Language','Home Tool Markup Language'],c:0},
+    {q:'Which one is a database?',a:['PostgreSQL','CSS','HTML','Figma'],c:0},
+    {q:'Which keyword creates a class in Java?',a:['function','define','class','object'],c:2},
+    {q:'Which of these is used to style web pages?',a:['SQL','CSS','JVM','HTTP'],c:1}
+  ];
+  let qIndex = 0, quizScore = 0, answered = false, quizFinished = false;
+  const questionEl = document.getElementById('question'), answersEl = document.getElementById('answers');
+  const quizStatus = document.getElementById('quizStatus'), progressEl = document.getElementById('quizProgress');
+  function showQuestion() {
+    answered = false; const item = questions[qIndex];
+    progressEl.textContent = `Question ${qIndex + 1} of ${questions.length}`;
+    questionEl.textContent = item.q; answersEl.innerHTML = '';
+    item.a.forEach((answer, i) => {
+      const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = answer;
+      btn.addEventListener('click', () => {
+        if (answered || quizFinished) return;
+        answered = true;
+        [...answersEl.children].forEach((b, j) => { b.disabled = true; if (j === item.c) b.classList.add('correct'); });
+        if (i === item.c) { quizScore++; quizStatus.textContent = 'Correct! +5 points'; award(5); }
+        else { btn.classList.add('wrong'); quizStatus.textContent = 'Not quite—review the highlighted correct answer.'; }
+        const next = document.createElement('button'); next.type = 'button'; next.textContent = qIndex === questions.length - 1 ? 'Finish round' : 'Next question';
+        next.style.marginTop = '12px';
+        next.addEventListener('click', () => {
+          qIndex++;
+          if (qIndex >= questions.length) {
+            quizFinished = true; questionEl.textContent = `Round complete! You got ${quizScore} out of ${questions.length} correct.`;
+            progressEl.textContent = 'Completed'; answersEl.innerHTML = '';
+            quizStatus.textContent = 'Play again whenever you like.'; return;
+          }
+          showQuestion();
+        });
+        answersEl.appendChild(next);
+      });
+      answersEl.appendChild(btn);
+    });
+  }
+  function restartQuiz() { qIndex = 0; quizScore = 0; answered = false; quizFinished = false; quizStatus.textContent = 'Complete the 5 questions to finish the round.'; showQuestion(); }
+  document.getElementById('quizRestart').addEventListener('click', restartQuiz);
+  restartQuiz();
+})();
+</script>
+</body>
+</html>
