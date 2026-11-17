@@ -3,7 +3,7 @@
  * Loaded by auth.html and dashboard.html.
  */
 
-const API_BASE = 'http://localhost:8080';
+const API_BASE = 'https://student-self-monitoring-system-1.onrender.com';
 const TOKEN_KEY = 'studyspark_token';
 const STUDENT_KEY = 'studyspark_student';
 
@@ -80,3 +80,4 @@ async function apiFetch(path, options = {}) {
   return data;
   
 }
+
