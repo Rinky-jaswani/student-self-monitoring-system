@@ -680,6 +680,11 @@ function renderStats() {
 }
 
 function renderCharts() {
+
+    if (typeof Chart === 'undefined') {
+    console.warn('Chart.js unavailable; skipping charts.');
+    return;
+  }
   const scored = [...scores].sort(
     (a, b) => a.examDate.localeCompare(b.examDate)
   );
