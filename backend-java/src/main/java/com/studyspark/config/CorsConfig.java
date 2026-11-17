@@ -1,21 +1,21 @@
 package com.studyspark.config;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * Allows the plain HTML/JS frontend (opened directly from disk, or served
- * from a local dev server on a different port) to call this API during
- * development. Tighten allowedOrigins before deploying anywhere public.
- */
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
+
+    @Value("${FRONTEND_URL:http://localhost:5500}")
+    private String frontendUrl;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE");
+                .allowedOrigins(frontendUrl)
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*");
     }
 }
