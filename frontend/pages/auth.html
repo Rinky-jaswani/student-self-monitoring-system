@@ -95,9 +95,9 @@
       <p class="sub">Log in with your username to see today's streak.</p>
       <form id="loginForm" novalidate onsubmit="return handleLogin(event)">
         <div class="field" id="f-login-username">
-          <label for="login-username">Username</label>
-          <input id="login-username" type="text" required autocomplete="username" />
-          <span class="error-text">We couldn't find that username.</span>
+          <label for="login-username">Email</label>
+          <input id="login-username" type="email" required autocomplete="email" />
+          <span class="error-text">We couldn't find that email.</span>
         </div>
         <div class="field" id="f-login-password">
           <label for="login-password">Password</label>
@@ -196,16 +196,14 @@
 </div>
 
 <script src="../scripts/mascot.js"></script>
+<script src="../scripts/auth.js"></script>
 <script>
-  const registeredStudents = [
-    { username: 'ananya_r', password: 'demo1234' },
-    { username: 'rahul.k', password: 'demo1234' },
-  ];
+   
 
   const AVATAR_DEFS = [
     { id: 'atom', svg: '<circle cx="12" cy="12" r="1.8" fill="currentColor"/><ellipse cx="12" cy="12" rx="9.5" ry="4" stroke="currentColor" stroke-width="1.3" fill="none"/><ellipse cx="12" cy="12" rx="9.5" ry="4" stroke="currentColor" stroke-width="1.3" fill="none" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9.5" ry="4" stroke="currentColor" stroke-width="1.3" fill="none" transform="rotate(120 12 12)"/>' },
     { id: 'dna', svg: '<path d="M7 3c0 7 10 7 10 14M17 3c0 7-10 7-10 14" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M8 7h8M7.4 12h9.2M8 17h8" stroke="currentColor" stroke-width="1" opacity="0.6"/>' },
-    { id: 'molecule', svg: '<circle cx="6" cy="7" r="1.8" fill="currentColor"/><circle cx="18" cy="7" r="1.8" fill="currentColor"/><circle cx="12" cy="14" r="2.2" fill="currentColor"/><circle cx="6" cy="19" r="1.8" fill="currentColor"/><circle cx="18" cy="19" r="1.8" fill="currentColor"/><path d="M6 7L12 14M18 7L12 14M12 14L6 19M12 14L18 19" stroke="currentColor" stroke-width="1"/>' },
+    { id: 'molecule', svg: '<circle cx="6" cy="7" r="1.8" fill="currentColor"/><circle cx="18" cy="7" r="1.8" fill="currentColor"/><circle cx="12" cy="14" r("currentColor"/><circle cx("currentColor"/><circle cx("currentColor"/><path d("M6 7L12 14M18 7L12 14M12 １４L6 １９M１２ １４L１８ １９" stroke("currentColor") stroke-width("１")/>' },
     { id: 'chip', svg: '<rect x="7" y="7" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' },
     { id: 'orbit', svg: '<circle cx="12" cy="12" r="2.2" fill="currentColor"/><ellipse cx="12" cy="12" rx="9" ry="3.8" stroke="currentColor" stroke-width="1.1" fill="none"/>' },
     { id: 'waveform', svg: '<path d="M2 12h4l2-6 3 12 3-9 2 5h6" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
@@ -262,12 +260,11 @@
   }
 
   function checkUsernameLive() {
-    const val = document.getElementById('signup-username').value.trim().toLowerCase();
-    const taken = registeredStudents.some(s => s.username.toLowerCase() === val);
-    setError('f-username', val.length > 0 && taken);
-    return !taken;
-  }
-
+    const val = document.getElementById('signup-username').value.trim();
+    const invalid = val.length > 0 && (val.length < 3 || val.length > 30);
+    setError('f-username', invalid);
+    return !invalid;
+}
   const isNameValid = v => /^[A-Za-z\s]{2,}$/.test(v.trim());
   const isAgeValid = v => Number(v) >= 5 && Number(v) <= 100;
   const isPhoneValid = v => /^[0-9]{7,15}$/.test(v.trim());
@@ -277,76 +274,94 @@
     e.target.value = e.target.value.replace(/[^0-9]/g, '');
   });
 
-  function handleSignup(evt) {
+ async function handleSignup(evt) {
     evt.preventDefault();
-    let valid = true;
 
-    const name = document.getElementById('signup-name').value;
-    const age = document.getElementById('signup-age').value;
-    const phone = document.getElementById('signup-phone').value;
-    const email = document.getElementById('signup-email').value;
+    const name = document.getElementById('signup-name').value.trim();
+    const age = Number(document.getElementById('signup-age').value);
+    const phone = document.getElementById('signup-phone').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
     const course = document.getElementById('signup-course').value.trim();
     const learnerType = document.getElementById('signup-learner-type').value;
     const username = document.getElementById('signup-username').value.trim();
     const password = document.getElementById('signup-password').value;
 
-    setError('f-name', !isNameValid(name)); if (!isNameValid(name)) valid = false;
-    setError('f-age', !isAgeValid(age)); if (!isAgeValid(age)) valid = false;
-    setError('f-phone', !isPhoneValid(phone)); if (!isPhoneValid(phone)) valid = false;
-    setError('f-email', !isEmailValid(email)); if (!isEmailValid(email)) valid = false;
-    setError('f-course', course.length === 0); if (course.length === 0) valid = false;
-    setError('f-learner-type', !learnerType); if (!learnerType) valid = false;
-    setError('f-password', password.length < 8); if (password.length < 8) valid = false;
-
-    const usernameFree = checkUsernameLive();
-    if (!usernameFree || username.length === 0) { setError('f-username', true); valid = false; }
-
-    if (!valid) return false;
-
-    registeredStudents.push({ username, password });
-
-    document.getElementById('signupForm').style.display = 'none';
-    document.getElementById('signup-quote').textContent = pick(SIGNUP_QUOTES);
-    document.getElementById('signup-who').textContent = name.split(' ')[0];
-    document.getElementById('signup-avatar-display').innerHTML = avatarSvg(selectedAvatar, 16);
-    document.getElementById('signup-thankyou').classList.add('active');
-
-    celebrateNewEntry('auth');
-    document.getElementById('auth-tagline').textContent = "You're in. Let's log your first session.";
-    return false;
-  }
-
-  function handleLogin(evt) {
-    evt.preventDefault();
-    let valid = true;
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value;
-
-    const match = registeredStudents.find(s => s.username.toLowerCase() === username.toLowerCase());
-    setError('f-login-username', !match); if (!match) valid = false;
-
-    if (match) {
-      const wrongPassword = match.password !== password;
-      setError('f-login-password', wrongPassword);
-      if (wrongPassword) valid = false;
-    } else {
-      setError('f-login-password', false);
+    if (
+        !isNameValid(name) || !isAgeValid(age) ||
+        !isPhoneValid(phone) || !isEmailValid(email) ||
+        !course || !learnerType || username.length < 3 ||
+        password.length < 8
+    ) {
+        alert('Please check all form fields.');
+        return false;
     }
 
-    if (!valid) return false;
+    try {
+        const data = await apiFetch('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({
+                name, age, phone, email, course,
+                learnerType, username, password
+            })
+        });
 
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('login-quote').textContent = pick(LOGIN_QUOTES);
-    document.getElementById('login-who').textContent = username;
-    document.getElementById('login-thankyou').classList.add('active');
+        saveSession(data);
 
-    celebrateNewEntry('auth');
-    document.getElementById('auth-tagline').textContent = "Welcome back — streak's waiting.";
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('signup-quote').textContent = pick(SIGNUP_QUOTES);
+        document.getElementById('signup-who').textContent = name.split(' ')[0];
+        document.getElementById('signup-avatar-display').innerHTML = avatarSvg(selectedAvatar, 16);
+        document.getElementById('signup-thankyou').classList.add('active');
+
+        document.getElementById('auth-tagline').textContent = "You're in. Let's get started.";
+
+        setTimeout(() => window.location.href = 'dashboard.html', 1500);
+
+    } catch (error) {
+        alert('Registration failed: ' + error.message);
+    }
+
     return false;
-  }
+}
+
+
+async function handleLogin(evt) {
+    evt.preventDefault();
+
+    const email = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    setError('f-login-username', !isEmailValid(email));
+    setError('f-login-password', false);
+
+    if (!isEmailValid(email) || !password) return false;
+
+    try {
+        const data = await apiFetch('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password })
+        });
+
+        saveSession(data);
+
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('login-quote').textContent = pick(LOGIN_QUOTES);
+        document.getElementById('login-who').textContent = email;
+        document.getElementById('login-thankyou').classList.add('active');
+
+        document.getElementById('auth-tagline').textContent = "Welcome back — streak's waiting.";
+
+    } catch (error) {
+        setError('f-login-password', true);
+        alert('Login failed: ' + error.message);
+    }
+
+    return false;
+}
 
   document.getElementById('auth-tagline').textContent = pick(TAGLINES);
 </script>
 
 </body>
 </html>
+  
