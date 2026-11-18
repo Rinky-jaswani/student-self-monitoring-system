@@ -277,14 +277,51 @@
     </div>
   </div>
 
-  <!-- My Subjects -->
-<section class="card section-card" style="padding:22px; margin-bottom:23px;">
-  <div class="section-head">
-    <h2>📚 My Subjects</h2>
-  </div>
-  <div id="subjectsList" style="display:flex; gap:12px; flex-wrap:wrap;">
-    Loading subjects...
-  </div>
+ <!-- My Subjects -->
+<section class="card section-card" style="padding: 22px; margin-bottom: 23px;">
+
+    <div class="section-head">
+        <h2>📚 My Subjects</h2>
+    </div>
+
+    <!-- Add Subject Form -->
+    <form
+        id="addSubjectForm"
+        style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;"
+    >
+
+        <input
+            type="text"
+            id="newSubjectName"
+            placeholder="Enter subject name"
+            maxlength="100"
+            required
+        >
+
+        <input
+            type="text"
+            id="newSubjectCategory"
+            placeholder="Category (e.g. Core, Elective)"
+            maxlength="50"
+        >
+
+        <button type="submit" id="addSubjectBtn">
+            + Add Subject
+        </button>
+
+    </form>
+
+    <!-- Status Message -->
+    <div id="subjectMessage" style="margin-bottom: 12px;"></div>
+
+    <!-- Subjects List -->
+    <div
+        id="subjectsList"
+        style="display: flex; gap: 12px; flex-wrap: wrap;"
+    >
+        Loading subjects...
+    </div>
+
 </section>
 
   <!-- AI Study Companion -->
@@ -552,6 +589,118 @@ function renderSubjects() {
     list.appendChild(card);
   });
 }
+// Add a new subject
+document
+    .getElementById('addSubjectForm')
+    .addEventListener('submit', async function (event) {
+
+        event.preventDefault();
+
+        const name = document
+            .getElementById('newSubjectName')
+            .value.trim();
+
+        const category = document
+            .getElementById('newSubjectCategory')
+            .value.trim();
+
+        const button = document.getElementById('addSubjectBtn');
+        const message = document.getElementById('subjectMessage');
+
+        if (!name) {
+            message.textContent = 'Please enter a subject name.';
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = 'Adding...';
+        message.textContent = '';
+
+        try {
+
+            await apiFetch('/api/subjects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    category: category
+                })
+            });
+
+            // Reload subjects from backend
+            subjects = await apiFetch('/api/subjects');
+
+            // Update subject cards and Study Tracker dropdown
+            renderSubjects();
+
+            // Clear form
+            document.getElementById('addSubjectForm').reset();
+
+            message.textContent = 'Subject added successfully!';
+
+        } catch (error) {
+
+            console.error('Add subject failed:', error);
+
+            message.textContent =
+                'Could not add subject: ' + error.message;
+
+        } finally {
+
+            button.disabled = false;
+            button.textContent = '+ Add Subject';
+
+        }
+
+    });
+
+    // Add Subject Form Handler
+document.getElementById('addSubjectForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const name = document.getElementById('newSubjectName').value.trim();
+    const category = document.getElementById('newSubjectCategory').value.trim();
+
+    const button = document.getElementById('addSubjectBtn');
+    const message = document.getElementById('subjectMessage');
+
+    if (!name) {
+        message.textContent = 'Please enter a subject name.';
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = 'Adding...';
+    message.textContent = '';
+
+    try {
+        await apiFetch('/api/subjects', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: name,
+                category: category
+            })
+        });
+
+        subjects = await apiFetch('/api/subjects');
+
+        renderSubjects();
+
+        document.getElementById('addSubjectForm').reset();
+
+        message.textContent = 'Subject added successfully!';
+
+    } catch (error) {
+        console.error('Add subject failed:', error);
+        message.textContent = 'Could not add subject: ' + error.message;
+
+    } finally {
+        button.disabled = false;
+        button.textContent = '+ Add Subject';
+    }
+});
 
 function renderTable() {
   const body = document.getElementById('activityBody');
