@@ -277,6 +277,16 @@
     </div>
   </div>
 
+  <!-- My Subjects -->
+<section class="card section-card" style="padding:22px; margin-bottom:23px;">
+  <div class="section-head">
+    <h2>📚 My Subjects</h2>
+  </div>
+  <div id="subjectsList" style="display:flex; gap:12px; flex-wrap:wrap;">
+    Loading subjects...
+  </div>
+</section>
+
   <!-- AI Study Companion -->
 <section class="card ai-companion">
 
@@ -512,11 +522,14 @@ function getStreakData() {
 
 function renderSubjects() {
   const select = document.getElementById('entry-subject');
+  const list = document.getElementById('subjectsList');
 
   select.innerHTML = '';
+  list.innerHTML = '';
 
   if (!subjects.length) {
     select.innerHTML = '<option value="">No subjects available</option>';
+    list.textContent = 'No subjects added yet.';
     return;
   }
 
@@ -530,6 +543,13 @@ function renderSubjects() {
     option.value = subject.id;
     option.textContent = subject.name;
     select.appendChild(option);
+
+    const card = document.createElement('div');
+    card.textContent = '📘 ' + subject.name;
+    card.style.cssText =
+      'padding:12px 18px; border:1px solid var(--border); border-radius:12px; background:rgba(139,112,255,.10); color:white; font-size:14px;';
+
+    list.appendChild(card);
   });
 }
 
