@@ -3,7 +3,7 @@
  * Loaded by auth.html and dashboard.html.
  */
 
-const API_BASE = 'https://student-self-monitoring-system-1.onrender.com';
+const API_BASE = 'https://student-self-monitoring-system-3.onrender.com';
 const TOKEN_KEY = 'studyspark_token';
 const STUDENT_KEY = 'studyspark_student';
 
